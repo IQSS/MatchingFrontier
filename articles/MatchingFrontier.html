@@ -53,7 +53,14 @@
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/IQSS/MatchingFrontier/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -69,9 +76,9 @@
       <h1 data-toc-skip>MatchingFrontier</h1>
                         <h4 class="author">Noah Greifer</h4>
             
-            <h4 class="date">2021-11-02</h4>
+            <h4 class="date">2021-11-05</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/IQSS/MatchingFrontier/blob/master/vignettes/MatchingFrontier.Rmd"><code>vignettes/MatchingFrontier.Rmd</code></a></small>
       <div class="hidden name"><code>MatchingFrontier.Rmd</code></div>
 
     </div>
@@ -170,10 +177,13 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
                                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
                                data <span class="op">=</span> <span class="va">lalonde</span>, 
                                QOI <span class="op">=</span> <span class="st">"FSATT"</span>, 
-                               metric <span class="op">=</span> <span class="st">"Mahal"</span><span class="op">)</span></code></pre></div>
-<p>There are a few ways to specify the arguments to <code><a href="../reference/makeFrontier.html">makeFrontier()</a></code>; see <code><a href="../reference/makeFrontier.html">help("makeFrontier")</a></code> for details. Here, we used the formula interface, which requires a model formula of the form <code>A ~ X1 + X2 + ...</code> where <code>A</code> corresponds to the treatment and <code>X1</code> and <code>X2</code> are the pretreatment covariates. We must also supply a dataset to the <code>data</code> argument. Note that no model is being fit here; the model formula serves to indicate which variable is the treatment and which are the covariates. The <code>QOI</code> (i.e., quantity of interest) argument corresponds to the desired estimand; here, we select the FSATT, but others are available depending on the type of frontier, as described previously. The <code>metric</code> argument corresponds to the imbalance metric used. Here, we entered <code>"Mahal"</code> to request the average Mahalanobis imbalance be used.</p>
+                               metric <span class="op">=</span> <span class="st">"mahal"</span><span class="op">)</span></code></pre></div>
+<pre><code>## Computing distance matrix...
+## Calculating frontier...
+## Done!</code></pre>
+<p>There are a few ways to specify the arguments to <code><a href="../reference/makeFrontier.html">makeFrontier()</a></code>; see <code><a href="../reference/makeFrontier.html">help("makeFrontier")</a></code> for details. Here, we used the formula interface, which requires a model formula of the form <code>A ~ X1 + X2 + ...</code> where <code>A</code> corresponds to the treatment and <code>X1</code> and <code>X2</code> are the pretreatment covariates. We must also supply a dataset to the <code>data</code> argument. Note that no model is being fit here; the model formula serves to indicate which variable is the treatment and which are the covariates. The <code>QOI</code> (i.e., quantity of interest) argument corresponds to the desired estimand; here, we select the FSATT, but others are available depending on the type of frontier, as described previously. The <code>metric</code> argument corresponds to the imbalance metric used. Here, we entered <code>"mahal"</code> to request the average Mahalanobis imbalance be used.</p>
 <p>The frontier is stored in the <code>matchFrontier</code> object, which we have called <code>mahal.frontier</code>. Printing <code>mahal.frontier</code> provides a summary of the type of frontier and its components:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.frontier</span></code></pre></div>
 <pre><code>## A matchFrontier object
 ## - quantity of interest: FSATT
@@ -186,12 +196,12 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <h3 class="hasAnchor">
 <a href="#plotting-the-frontier" class="anchor"></a>Plotting the frontier</h3>
 <p>Now that we have computed the frontier, we plot the frontier using <code><a href="../reference/plot.matchFrontier.html">plot.matchFrontier()</a></code> to visualize the relationship between the number of units dropped and the imbalance metric.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mahal.frontier</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-4-1.png" width="672"></p>
 <p>The plot indicates a monotonic negative relationship between the number of units dropped and the average Mahalanobis imbalance. The lower x-axis corresponds to the number of units dropped, and the upper x-axis corresponds to the number of units remaining. Here these sample sizes refer only to the number of treated units dropped or remaining because our quantity of interest is the FSATT. Control units are not counted in this plot because they will be dropped along the with the treated unit they are paired with.</p>
 <p>We can use <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> on the <code>matchFrontier</code> object to reveal information about the beginning and end of the frontier.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mahal.frontier</span><span class="op">)</span></code></pre></div>
 <pre><code>## Summary of matchFrontier object:
 ## 
@@ -202,7 +212,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ##               ^</code></pre>
 <p>From the plot and summary we can see that the initial average Mahalanobis imbalance after matching but before discarding any units was about .338. After dropping 172 treated units, the imbalance falls to 0 (i.e., indicating that the remaining units are exactly matched on all the covariates). Dropping this many units has left us with only about 13 pairs remaining, which is typically far too few to make valid inferences on. Thus, the ideal sample lies somewhere between the beginning and end of the frontier.</p>
 <p>We can also view information about balance for individual covariates using <code><a href="../reference/plot.matchFrontier.html">plot.matchFrontier()</a></code>. To do so, we supply the names of individual covariates to the <code>covs</code> argument of <code><a href="../reference/plot.matchFrontier.html">plot.matchFrontier()</a></code> and set <code>stat = "std-diff"</code> for standardized mean differences, which are useful for continuous covariates, and <code>stat = "diff</code>, and for raw mean differences, which are useful for sets of variables that are on the same scale (like binary covariates).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Standardized mean differences for continuous covariates</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mahal.frontier</span>, covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"educ"</span>, <span class="st">"re74"</span><span class="op">)</span>,
      stat <span class="op">=</span> <span class="st">"std-diff"</span><span class="op">)</span>
@@ -213,7 +223,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-6-1.png" width="672"><img src="MatchingFrontier_files/figure-html/unnamed-chunk-6-2.png" width="672"></p>
 <p>Here we can see that after an initial imbalance (the three dots on the left side of each plot), pairing has removed much imbalance immediately even without discarding additional units. However, balance can be improved on some covariates by continuing to drop pairs.</p>
 <p>To view (standardized) means for each covariate, which allows us to see how the distribution of covariates in the estimation sample varies across the frontier, we can set <code>stat = "std-mean"</code> for standardized means and <code>stat = "mean"</code> for raw means. Using standardized means allows us to see how the standardized mean difference between the covariates in the estimation sample and the covariates in the target sample varies across the frontier; values close to zero indicate that the estimation sample strongly resembles the target sample. Using raw means allows us to see the actual location of the covariate means across the frontier (though make sure variables are on the same scale if multiple are to be included in the same plot!).</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Standardized means for continuous covariates</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mahal.frontier</span>, covs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"educ"</span>, <span class="st">"re74"</span><span class="op">)</span>,
      stat <span class="op">=</span> <span class="st">"std-mean"</span><span class="op">)</span>
@@ -229,11 +239,11 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <a href="#extract-a-dataset-from-the-frontier" class="anchor"></a>Extract a dataset from the frontier</h3>
 <p>We can estimate treatment effects at each point along the frontier or at a single point. First, we’ll demonstrate extracting a single dataset from the frontier and further examining it.</p>
 <p><code>MatchingFrontier</code> interfaces with <code>MatchIt</code> to use the balance assessment and reporting capabilities of <code>MatchIt</code> and provide a simple, well-documented workflow for estimating effects after matching. We can use the function <code><a href="../reference/frontier_to_matchit.html">frontier_to_matchit()</a></code> to extract a matching specification at one point on the frontier and turn it into a <code>MatchIt</code> object as if it had resulted from a call to <code><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">MatchIt::matchit()</a></code>. We need to select the point along the frontier for which this extraction is desired, and this can be specified either based on the number of units dropped or the number of units remaining. Here, we’ll pick the point on the frontier with 100 units remaining (corresponding to dropping 85 units).</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.matchit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/frontier_to_matchit.html">frontier_to_matchit</a></span><span class="op">(</span><span class="va">mahal.frontier</span>, N <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>
 <span class="co">#same thing:     frontier_to_matchit(mahal.frontier, Ndrop = 85)</span></code></pre></div>
 <p>Printing the new <code>matchit</code> object provides some information about it and indicates that it is indeed a <code>matchit</code> object.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.matchit</span></code></pre></div>
 <pre><code>## A matchit object
 ##  - method: An unspecified matching method
@@ -241,12 +251,12 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ##  - target estimand: ATT
 ##  - covariates: age, educ, race, married, nodegree, re74, re75</code></pre>
 <p>We can use <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> from <code>MatchIt</code> to assess balance on the covariates individually before and after matching, providing more detail than the original imbalance metric alone:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mahal.matchit</span>, improvement <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Call:
 ## makeFrontier(formula = treat ~ age + educ + race + married + 
-##     nodegree + re74 + re75, data = lalonde, QOI = "FSATT", metric = "Mahal")
+##     nodegree + re74 + re75, data = lalonde, QOI = "FSATT", metric = "mahal")
 ## 
 ## Summary of Balance for All Data:
 ##            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
@@ -282,7 +292,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## Discarded        0.         0</code></pre>
 <p>See <code><a href="https://kosukeimai.github.io/MatchIt/reference/summary.matchit.html">help("summary.matchit", package = "MatchIt")</a></code> for more information on <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> and its options. Here we can see the initial imbalance and the imbalance remaining after selecting a point along the frontier. (Note that selecting the first point on the frontier, before dropping any units, still involves pairing the units when using the pair distance-based frontier, so balance at this point will typically not coincide with the balance for the full dataset prior to matching.) Balance in the matched sample is much better for most of the covariates, though the categorical covariates remain imbalanced (this is a known weakness of the Mahalanobis distance for matching <span class="citation">(Rosenbaum <a href="#ref-rosenbaum2020" role="doc-biblioref">2020</a>; Stuart <a href="#ref-stuart2010" role="doc-biblioref">2010</a>)</span>). Finally, at the bottom we can see a summary of the remaining sample sizes. 100 treated units remain, just as we requested. Those 100 treated units are matched to a total of 52 control units because matching is done with replacement in <code>MatchingFrontier</code>. However, the matching weights required to estimate the FSATT only yield an effective sample size (ESS) of approximately 31 for for the control units.</p>
 <p>To estimate the treatment effect at this point on the frontier, we can use a regression of the outcome on the treated (and optionally the covariates) in the matched sample. The matched dataset can be extracted in one of two ways: using <code><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data()</a></code> or <code><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">get_matches()</a></code> on the <code>matchit</code> object, or using <code><a href="../reference/generateDataset.html">generateDataset()</a></code> on the <code>matchFrontier</code> object. Both yield identical results.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.matched.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDataset.html">generateDataset</a></span><span class="op">(</span><span class="va">mahal.frontier</span>, N <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>
 <span class="co">#Same result:         MatchIt::match.data(mahal.matchit, data = lalonde)</span>
 
@@ -300,7 +310,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <h3 class="hasAnchor">
 <a href="#estimating-treatment-effects-and-assessing-model-sensitivity" class="anchor"></a>Estimating treatment effects and assessing model sensitivity</h3>
 <p>We can use regression to estimate the treatment effect in the matched sample. See <code><a href="https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html">vignette("estimating-effects", package = "MatchIt")</a></code> for more details on estimating treatment effects after matching with replacement. Here we use a linear regression adjusting for the matched covariates. We must include use the matching weights in the regression and use robust standard errors to account for the weights <span class="citation">(Hill and Reiter <a href="#ref-hill2006" role="doc-biblioref">2006</a>)</span>.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st">"lmtest"</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://sandwich.R-Forge.R-project.org/">"sandwich"</a></span><span class="op">)</span>
 
@@ -312,7 +322,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## treat 90.13604   1615.437 0.05579669 0.9555822</code></pre>
 <p>We chose a specific outcome model, but we could have chosen others, e.g., by including powers of covariates or interactions between them. We can assess how dependent on our choice of model our results are using the <code><a href="../reference/modelDependence.html">modelDependence()</a></code> function in <code>MatchingFrontier</code>. The output of <code><a href="../reference/modelDependence.html">modelDependence()</a></code> is a pair of bounds representing the treatment effects possible from specifying many possible models. Narrow bounds indicate that our results are not sensitive to our choice of model, which is a good thing because it implies our conclusions are not simply the result of fishing for a desired outcome. See also the <code>ExtremeBounds</code> package <span class="citation">(Hlavac <a href="#ref-hlavac2016" role="doc-biblioref">2016</a>)</span>, which provides greater functionality focused on variable selection.</p>
 <p><code>MatchingFrontier</code> has two methods of assessing model dependence: the extreme bounds procedure <span class="citation">(Leamer <a href="#ref-leamer1983" role="doc-biblioref">1983</a>)</span>, which involves fitting a random selection of possible models to the data and extracting treatment effects estimates from each one, and the Athey-Imbens procedure <span class="citation">(Athey and Imbens <a href="#ref-athey2015" role="doc-biblioref">2015</a>)</span>, which involves splitting the data across covariate boundaries and examining how variable the effect estimates are across splits. When using pair distance-based frontiers, only the extreme bounds procedure is available, so we use that below.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.MD</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/modelDependence.html">modelDependence</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> 
                               <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
                             data <span class="op">=</span> <span class="va">mahal.matched.data</span>, 
@@ -330,7 +340,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <h3 class="hasAnchor">
 <a href="#estimating-effects-along-the-frontier" class="anchor"></a>Estimating effects along the frontier</h3>
 <p>The next step is to estimate treatment effects along the frontier. Doing so allows us to examine the sensitivity of our results to the choice of our sample size/imbalance trade-off. To estimates these effects, we use the <code>estimatEffects()</code> function. This function estimates treatment effects, confidence intervals, and, optionally, model dependence bounds at each point on the frontier. With a large frontier, this can take a long time, so we can request that only some proportion of the points along the frontier have estimates using the <code>prop.estimated</code> argument. We will request the extreme bounds procedure be used to assess model sensitivity, as we did for the single point estimate above.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateEffects.html">estimateEffects</a></span><span class="op">(</span><span class="va">mahal.frontier</span>, 
                                    base.form <span class="op">=</span> <span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span>
                                      <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
@@ -339,7 +349,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
                                    verbose <span class="op">=</span> <span class="cn">FALSE</span>,
                                    seed <span class="op">=</span> <span class="fl">12345</span><span class="op">)</span></code></pre></div>
 <p>Printing the resulting <code>frontierEstimates</code> object provides some information about the estimation procedure.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.estimates</span></code></pre></div>
 <pre><code>## A frontierEstimates object
 ## - quantity of interest: FSATT
@@ -350,11 +360,11 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## - covariates: age, educ, race, married, nodegree, re74, re75
 ## - outcome model: re78 ~ treat + age + educ + race + married + nodegree + re74 + re75</code></pre>
 <p>Next, we can plot the estimates across the frontier using <code><a href="../reference/plot.frontierEstimates.html">plot.frontierEstimates()</a></code>. We can choose to display the model dependence bands or confidence bands using the argument to <code>band</code>. We’ll begin by looking at model dependence.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mahal.estimates</span>, band <span class="op">=</span> <span class="st">"model-dependence"</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-16-1.png" width="672"></p>
 <p>We can see that model dependence varies along the frontier, and markedly increases once 120 treated units are dropped. However, at the last point of the frontier, where the groups are perfectly balanced, model dependence drops to zero. Next, we can plot confidence bands along the frontier.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">mahal.estimates</span>, band <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-17-1.png" width="672"></p>
 <p>As sample size decreases, the confidence band width increases, as expected.</p>
@@ -364,13 +374,17 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <a href="#using-other-types-of-frontiers" class="anchor"></a>Using other types of frontiers</h3>
 <p>Above, we demonstrated the use of <code>MatchingFrontier</code> with a pair distance-based frontier. Other type of frontiers work slightly differently because no pairing is done, so the frontier tracks changes from a truly unadjusted sample to a fully adjusted sample, where the adjustment comes in form of discarding units. In contrast, the first step of the pair distance-based frontier tends to be better balanced than the original dataset because pairing has already been done. Below, we briefly demonstrate using an energy distance-based frontier to estimate the SATE.</p>
 <p>First, we compute the frontier using <code><a href="../reference/makeFrontier.html">makeFrontier()</a></code>.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">energy.frontier</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/makeFrontier.html">makeFrontier</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> 
                                   <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
                                 data <span class="op">=</span> <span class="va">lalonde</span>, 
                                 QOI <span class="op">=</span> <span class="st">"SATE"</span>, 
-                                metric <span class="op">=</span> <span class="st">"Energy"</span><span class="op">)</span>
-<span class="va">energy.frontier</span></code></pre></div>
+                                metric <span class="op">=</span> <span class="st">"energy"</span><span class="op">)</span></code></pre></div>
+<pre><code>## Computing distance matrix...
+## Calculating frontier...
+## Done!</code></pre>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">energy.frontier</span></code></pre></div>
 <pre><code>## A matchFrontier object
 ## - quantity of interest: SATE
 ## - imbalance metric: energy distance
@@ -378,11 +392,11 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## - covariates: age, educ, race, married, nodegree, re74, re75
 ## - number of points: 559</code></pre>
 <p>Next, we can plot the frontier to see the relationship between sample size and imbalance. Because we are estimating the SATE, imbalance represents the difference between the distribution of the treated units, the distribution of the control units, and the distribution of the original (target) sample. Thus, as imbalance decreases, the groups look more similar to each other and to the original sample.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">energy.frontier</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-19-1.png" width="672"></p>
 <p>In contrast to pair distance-based frontiers, energy distance-based frontiers are not monotonic; there is a point at which decreasing the size of the remain sample makes balance worse, which does not occur with pair distance-based frontiers. To find the point along the frontier with the best balance, we can use <code><a href="../reference/summary.matchFrontier.html">summary.matchFrontier()</a></code>:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">energy.frontier</span><span class="op">)</span></code></pre></div>
 <pre><code>## Summary of matchFrontier object:
 ## 
@@ -392,7 +406,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## Best         32       150     182     0.143
 ##                                 ^</code></pre>
 <p>Here we can see that the balance is best when 182 units remain, though the plot indicates that it is possible to have similar balance while discarding fewer units. We can use the steps previously described to extract the dataset at that point on the frontier and estimate its treatment effect and model dependence. First we will turn that point into a <code>matchit</code> object and assess balance on the covariates.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">energy.matchit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/frontier_to_matchit.html">frontier_to_matchit</a></span><span class="op">(</span><span class="va">energy.frontier</span>, N <span class="op">=</span> <span class="fl">182</span><span class="op">)</span>
 <span class="co">#same thing:      frontier_to_matchit(energy.frontier, Ndrop = 432)</span>
 
@@ -400,7 +414,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <pre><code>## 
 ## Call:
 ## makeFrontier(formula = treat ~ age + educ + race + married + 
-##     nodegree + re74 + re75, data = lalonde, QOI = "SATE", metric = "Energy")
+##     nodegree + re74 + re75, data = lalonde, QOI = "SATE", metric = "energy")
 ## 
 ## Summary of Balance for Matched Data:
 ##            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
@@ -421,12 +435,12 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## Unmatched     279     153
 ## Discarded       0       0</code></pre>
 <p>We can see that mean difference are very low in the extracted sample, indicating good balance. We can move forward with effect estimation and assessing model dependence after extracting the matched dataset.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">energy.matched.data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDataset.html">generateDataset</a></span><span class="op">(</span><span class="va">energy.frontier</span>, N <span class="op">=</span> <span class="fl">182</span><span class="op">)</span>
 <span class="co">#Same result:          MatchIt::match.data(energy.matchit, data = lalonde)</span></code></pre></div>
 <p>Because no pairing has taken place, we don’t need to worry about replicating units in the dataset, so we don’t have to set <code>dup = TRUE</code> and our output is the same as had we used <code><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data()</a></code> on the <code>matchit</code> object.</p>
 <p>Below, we estimate the SATE using regression as we did before (note the weights are unnecessary here but it’s good practice to use them):</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># library("lmtest") #already loaded</span>
 <span class="co"># library("sandwich")</span>
 
@@ -437,7 +451,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <pre><code>##       Estimate Std. Error   t value Pr(&gt;|t|)
 ## treat  701.262   1504.433 0.4661304 0.641712</code></pre>
 <p>We can assess model dependence using <code><a href="../reference/modelDependence.html">modelDependence()</a></code>. Because we are not using a pair distance-based frontier, we can use the Athey-Imbens model dependence procedure in addition to the extreme bounds procedure. We’ll do so below.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">energy.MD</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/modelDependence.html">modelDependence</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span>
                                <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
                              data <span class="op">=</span> <span class="va">energy.matched.data</span>,
@@ -450,7 +464,7 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ##      lower      upper       diff 
 ##   93.85873 1308.66520 1214.80648</code></pre>
 <p>Next, we will estimate effects and model dependence bounds across the frontier.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">energy.estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateEffects.html">estimateEffects</a></span><span class="op">(</span><span class="va">energy.frontier</span>, 
                                     base.form <span class="op">=</span> <span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span>
                                       <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,
@@ -468,11 +482,11 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## - covariates: age, educ, race, married, nodegree, re74, re75
 ## - outcome model: re78 ~ treat + age + educ + race + married + nodegree + re74 + re75</code></pre>
 <p>It’s important to remember that with frontiers other than pair distance-based frontiers, the effects estimated at the beginning of the frontier may be biased because no matching has been performed. Only toward the frontier’s trough should estimates be interpreted as potentially valid as these have been adjusted through dropping units to improve balance. We’ll plot the estimates and their model dependence below:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">energy.estimates</span>, band <span class="op">=</span> <span class="st">"model-dependence"</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-26-1.png" width="672"></p>
 <p>Next we’ll plot the estimates and their confidence intervals:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">energy.estimates</span>, band <span class="op">=</span> <span class="st">"confidence"</span><span class="op">)</span></code></pre></div>
 <p><img src="MatchingFrontier_files/figure-html/unnamed-chunk-27-1.png" width="672"></p>
 <p>Remember that we targeted two different quantities of interest with the Mahalanobis distance frontier and the energy distance frontier, so we should not expect estimates to exactly coincide.</p>

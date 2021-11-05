@@ -95,7 +95,12 @@
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/IQSS/MatchingFrontier/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -170,8 +175,10 @@
 <span class='co'>#Pair distance frontier for FSATT</span>
 <span class='va'>f1</span> <span class='op'>&lt;-</span> <span class='fu'><a href='makeFrontier.html'>makeFrontier</a></span><span class='op'>(</span><span class='va'>treat</span> <span class='op'>~</span> <span class='va'>age</span> <span class='op'>+</span> <span class='va'>educ</span> <span class='op'>+</span> <span class='va'>married</span> <span class='op'>+</span> <span class='va'>re74</span>,
                    data <span class='op'>=</span> <span class='va'>lalonde</span>, QOI <span class='op'>=</span> <span class='st'>"FSATT"</span>,
-                   metric <span class='op'>=</span> <span class='st'>"Mahal"</span><span class='op'>)</span>
-
+                   metric <span class='op'>=</span> <span class='st'>"mahal"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; Computing distance matrix...
+#&gt; Calculating frontier...
+#&gt; Done!</div><div class='input'>
 <span class='co'>#Plot the balance metric frontier</span>
 <span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>f1</span><span class='op'>)</span>
 </div><div class='img'><img src='plot.matchFrontier-1.png' alt='' width='700' height='433' /></div><div class='input'>

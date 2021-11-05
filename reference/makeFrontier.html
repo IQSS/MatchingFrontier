@@ -95,7 +95,12 @@
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/IQSS/MatchingFrontier/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -124,7 +129,7 @@
 <span class='fu'>makeFrontier</span><span class='op'>(</span><span class='va'>formula</span>,
              <span class='va'>data</span>,
              QOI <span class='op'>=</span> <span class='st'>'FSATT'</span>,
-             metric <span class='op'>=</span> <span class='st'>'Mahal'</span>,
+             metric <span class='op'>=</span> <span class='st'>'mahal'</span>,
              breaks <span class='op'>=</span> <span class='cn'>NULL</span>,
              distance.mat <span class='op'>=</span> <span class='cn'>NULL</span>,
              verbose <span class='op'>=</span> <span class='cn'>TRUE</span>, <span class='va'>...</span><span class='op'>)</span>
@@ -134,7 +139,7 @@
              <span class='va'>treatment</span>,
              <span class='va'>match.on</span>,
              QOI <span class='op'>=</span> <span class='st'>'FSATT'</span>,
-             metric <span class='op'>=</span> <span class='st'>'Mahal'</span>,
+             metric <span class='op'>=</span> <span class='st'>'mahal'</span>,
              breaks <span class='op'>=</span> <span class='cn'>NULL</span>,
              distance.mat <span class='op'>=</span> <span class='cn'>NULL</span>,
              verbose <span class='op'>=</span> <span class='cn'>TRUE</span>, <span class='va'>...</span><span class='op'>)</span>
@@ -172,7 +177,7 @@
     </tr>
     <tr>
       <th>metric</th>
-      <td><p>the imbalance metric to be minimized; allowable options include <code>'L1'</code>, <code>'L1median'</code>, <code>'L2'</code>, <code>'L2median'</code>, <code>'Mahal'</code>, <code>'Euclid'</code>, <code>'Custom'</code>, and <code>'Energy'</code>. See Details. Default is <code>'Mahal'</code>. Not all <code>metric</code>s can be used with all <code>QOI</code>s.</p></td>
+      <td><p>the imbalance metric to be minimized; allowable options include <code>'L1'</code>, <code>'L1median'</code>, <code>'L2'</code>, <code>'L2median'</code>, <code>'mahal'</code>, <code>'euclid'</code>, <code>'custom'</code>, and <code>'energy'</code>. See Details. Default is <code>'mahal'</code>. Not all <code>metric</code>s can be used with all <code>QOI</code>s.</p></td>
     </tr>
     <tr>
       <th>breaks</th>
@@ -180,7 +185,7 @@
     </tr>
     <tr>
       <th>distance.mat</th>
-      <td><p>when <code>metric</code> is <code>'Custom'</code> or <code>'Energy'</code>, a distance matrix used to define the distance between units. For <code>metric = 'Custom'</code>, should be a distance matrix with one row for each treated unit and one column for each control unit. For <code>metric = 'Energy'</code>, should be a full N by N distance matrix with a row and column for each unit. Optional when <code>metric = 'Energy'</code>; if not specified, the Euclidean distance computed on the scaled covariates will be used instead. See Details.</p></td>
+      <td><p>when <code>metric</code> is <code>'custom'</code> or <code>'energy'</code>, a distance matrix used to define the distance between units. For <code>metric = 'custom'</code>, should be a distance matrix with one row for each treated unit and one column for each control unit. For <code>metric = 'energy'</code>, should be a full N by N distance matrix with a row and column for each unit. Optional when <code>metric = 'energy'</code>; if not specified, the Euclidean distance computed on the scaled covariates will be used instead. See Details.</p></td>
     </tr>
     <tr>
       <th>verbose</th>
@@ -194,10 +199,10 @@
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p><code>makeFrontier()</code> computes the matching frontier for a given dataset, quantity of interest (QOI), and imbalance metric. The frontier describes the relationship between the size of the remaining sample and the lowest imbalance possible given that sample size. How the frontier is formed depends on the QOI and imbalance metric. Three types of frontier are currently available depending on the argument supplied to <code>metric</code>: pair distance-based frontiers (<code>'Mahal'</code>, <code>'Euclid'</code>, and <code>'Custom'</code>), bin-based frontiers (<code>'L1'</code>, <code>'L1median'</code>, <code>'L2'</code>, and <code>'L2median'</code>) and energy distance-based frontiers (<code>'Energy'</code>). These are described briefly below and in more detail <code><a href='../articles/MatchingFrontier.html'>vignette("MatchingFrontier")</a></code>.</p>
+    <p><code>makeFrontier()</code> computes the matching frontier for a given dataset, quantity of interest (QOI), and imbalance metric. The frontier describes the relationship between the size of the remaining sample and the lowest imbalance possible given that sample size. How the frontier is formed depends on the QOI and imbalance metric. Three types of frontier are currently available depending on the argument supplied to <code>metric</code>: pair distance-based frontiers (<code>'mahal'</code>, <code>'euclid'</code>, and <code>'custom'</code>), bin-based frontiers (<code>'L1'</code>, <code>'L1median'</code>, <code>'L2'</code>, and <code>'L2median'</code>) and energy distance-based frontiers (<code>'energy'</code>). These are described briefly below and in more detail <code><a href='../articles/MatchingFrontier.html'>vignette("MatchingFrontier")</a></code>.</p>
 <h3 class='hasAnchor' id='arguments'><a class='anchor' href='#arguments'></a>Pair distance-based frontiers</h3>
 <p>With a pair distance-based frontier, each unit is paired with the closest unit of the opposite treatment group, where the distance is measured as the Mahalanobis distance, the Euclidean distance, or a user-supplied distance, as determined by the <code>metric</code> argument. Pairing is done with replacement so units can be paired to multiple units at a time. The average distance between each unit and its paired unit is used as the imbalance metric. The frontier is formed by dropping one unit at a time, starting with the unit that is farthest from its paired unit. If two units are equally far from their respective paired units, they are both dropped. In this way, the imbalance metric will decrease monotonically until no units remain or all remain pairs contain identical members.</p>
-<p>These frontiers can only be used when the QOI is the FSATE or FSATT. The distance between units used to form the pairs and compute the imbalance metric can be computed the Mahalanobis distance (<code>metric = 'Mahal'</code>), the Euclidean distance (<code>metric = 'Euclid'</code>), or a user-supplied distance (<code>metric = 'Custom'</code>). When (<code>metric = 'Custom'</code>), a distance matrix must be supplied to <code>distance.mat</code> with a row for each treated unit and a column for each control unit.</p>
+<p>These frontiers can only be used when the QOI is the FSATE or FSATT. The distance between units used to form the pairs and compute the imbalance metric can be computed the Mahalanobis distance (<code>metric = 'mahal'</code>), the Euclidean distance (<code>metric = 'euclid'</code>), or a user-supplied distance (<code>metric = 'custom'</code>). When (<code>metric = 'custom'</code>), a distance matrix must be supplied to <code>distance.mat</code> with a row for each treated unit and a column for each control unit.</p>
 
 <h3 class='hasAnchor' id='arguments'><a class='anchor' href='#arguments'></a>Bin-based frontiers</h3>
 <p>Bin-based frontiers involve assigning each unit into a bin based on its unique combination of coarsened covariates. The frontier is formed by dropping one unit at a time, in particular, the unit that when dropped would yield the greatest decrease in the imbalance metric. Bin-based frontiers are formed by subset selection rather than pairing; units are not paired with each other, and the initial point of the frontier is computed on the unmodified sample (in contrast to pair distance-based frontiers, where the initial point is computed after pairing). Bin-based frontiers can be thought of as a close relative to coarsened exact matching, as implemented in <span class="pkg">cem</span> and <span class="pkg">MatchIt</span> (i.e., using <code>matchit()</code> with <code>method = "cem"</code>).</p>
@@ -248,8 +253,10 @@
 <span class='co'>#Pair distance frontier for FSATT</span>
 <span class='va'>f1</span> <span class='op'>&lt;-</span> <span class='fu'>makeFrontier</span><span class='op'>(</span><span class='va'>treat</span> <span class='op'>~</span> <span class='va'>age</span> <span class='op'>+</span> <span class='va'>educ</span> <span class='op'>+</span> <span class='va'>married</span> <span class='op'>+</span> <span class='va'>re74</span>,
                    data <span class='op'>=</span> <span class='va'>lalonde</span>, QOI <span class='op'>=</span> <span class='st'>"FSATT"</span>,
-                   metric <span class='op'>=</span> <span class='st'>"Mahal"</span><span class='op'>)</span>
-
+                   metric <span class='op'>=</span> <span class='st'>"mahal"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; Computing distance matrix...
+#&gt; Calculating frontier...
+#&gt; Done!</div><div class='input'>
 <span class='va'>f1</span>
 </div><div class='output co'>#&gt; A matchFrontier object
 #&gt; - quantity of interest: FSATT
@@ -269,7 +276,9 @@
 <span class='va'>f2</span> <span class='op'>&lt;-</span> <span class='fu'>makeFrontier</span><span class='op'>(</span><span class='va'>treat</span> <span class='op'>~</span> <span class='va'>age</span> <span class='op'>+</span> <span class='va'>educ</span> <span class='op'>+</span> <span class='va'>married</span> <span class='op'>+</span> <span class='va'>re74</span>,
                    data <span class='op'>=</span> <span class='va'>lalonde</span>, QOI <span class='op'>=</span> <span class='st'>"FSATE"</span>,
                    metric <span class='op'>=</span> <span class='st'>"L1"</span><span class='op'>)</span>
-
+</div><div class='output co'>#&gt; Computing bins...
+#&gt; Calculating frontier...
+#&gt; Done!</div><div class='input'>
 <span class='va'>f2</span>
 </div><div class='output co'>#&gt; A matchFrontier object
 #&gt; - quantity of interest: FSATE
@@ -288,8 +297,10 @@
 <span class='co'>#Energy distance frontier for SATE</span>
 <span class='va'>f3</span> <span class='op'>&lt;-</span> <span class='fu'>makeFrontier</span><span class='op'>(</span><span class='va'>treat</span> <span class='op'>~</span> <span class='va'>age</span> <span class='op'>+</span> <span class='va'>educ</span> <span class='op'>+</span> <span class='va'>married</span> <span class='op'>+</span> <span class='va'>re74</span>,
                    data <span class='op'>=</span> <span class='va'>lalonde</span>, QOI <span class='op'>=</span> <span class='st'>"SATE"</span>,
-                   metric <span class='op'>=</span> <span class='st'>"Energy"</span><span class='op'>)</span>
-
+                   metric <span class='op'>=</span> <span class='st'>"energy"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; Computing distance matrix...
+#&gt; Calculating frontier...
+#&gt; Done!</div><div class='input'>
 <span class='va'>f3</span>
 </div><div class='output co'>#&gt; A matchFrontier object
 #&gt; - quantity of interest: SATE

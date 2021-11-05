@@ -94,7 +94,12 @@
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/IQSS/MatchingFrontier/">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -109,7 +114,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
       <h1 data-toc-skip>Changelog <small></small></h1>
-      
+      <small>Source: <a href='https://github.com/IQSS/MatchingFrontier/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
     <div id="matchingfrontier-400" class="section level1">
@@ -123,7 +128,7 @@
 <p><code><a href="../reference/makeFrontier.html">makeFrontier()</a></code> has been completely rewritten. The biggest changes come in the new imbalance metrics and quantities of interest allowed and the changing of some past options. Factor variables can now be used as well.</p>
 <ul>
 <li><p><code>QOI</code> can now be one of <code>"SATE"</code> (sample average treatment effect), <code>"FSATE"</code> (feasible sample average treatment effect), <code>"SATT"</code> (sample average treatment effect in the treated), or <code>"FSATT"</code> (feasible sample average treatment effect in the treated).</p></li>
-<li><p>The different types of frontiers are now available depending on the imbalance metric supplied to <code>metric</code>. These include pair distance-based frontiers, bin-based frontiers, and energy distance-based frontiers. For pair distance-based frontiers, <code>metric</code> can be one of <code>"Mahal"</code>, <code>"Euclid"</code>, or "<code>Custom"</code>. For bin-based frontiers, <code>metric</code> can be one <code>"L1"</code>, <code>"L2"</code>, <code>"L1median"</code>, or <code>"L2median"</code>. For energy distance-based frontiers, <code>metric</code> can be <code>"Energy"</code>. Not all <code>metric</code>s are available with all <code>QOI</code>s, but the ones available have expanded from previous versions.</p></li>
+<li><p>The different types of frontiers are now available depending on the imbalance metric supplied to <code>metric</code>. These include pair distance-based frontiers, bin-based frontiers, and energy distance-based frontiers. For pair distance-based frontiers, <code>metric</code> can be one of <code>"mahal"</code>, <code>"euclid"</code>, or "<code>custom"</code>. For bin-based frontiers, <code>metric</code> can be one <code>"L1"</code>, <code>"L2"</code>, <code>"L1median"</code>, or <code>"L2median"</code>. For energy distance-based frontiers, <code>metric</code> can be <code>"energy"</code>. Not all <code>metric</code>s are available with all <code>QOI</code>s, but the ones available have expanded from previous versions. The argument is now case-insensitive (i.e., so old <code>metric</code>s like <code>"Mahal"</code> still work).</p></li>
 <li><p>Bugs in how the balance statistics are computed have been fixed.</p></li>
 <li><p>Speed improvements for pair distance-based and bin-based frontiers.</p></li>
 <li><p>The <code>ratio</code> argument is now defunct and has been removed.</p></li>
