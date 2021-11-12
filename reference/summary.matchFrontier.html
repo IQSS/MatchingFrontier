@@ -40,7 +40,7 @@
 
 
 <meta property="og:title" content="Summarize a matchFrontier object — summary.matchFrontier" />
-<meta property="og:description" content="summary() displays the sample sizes and imbalance metrics at the beginning and end of the frontier as well as at the point at which the imbalance metric is lowest." />
+<meta property="og:description" content="summary() displays the sample sizes and imbalance metrics at the beginning of the frontier, the end of the frontier, and the point at which the imbalance metric is lowest, or at user-specified points along the frontier." />
 
 
 
@@ -120,14 +120,14 @@
     </div>
 
     <div class="ref-description">
-    <p><code><a href='https://rdrr.io/r/base/summary.html'>summary()</a></code> displays the sample sizes and imbalance metrics at the beginning and end of the frontier as well as at the point at which the imbalance metric is lowest.</p>
+    <p><code><a href='https://rdrr.io/r/base/summary.html'>summary()</a></code> displays the sample sizes and imbalance metrics at the beginning of the frontier, the end of the frontier, and the point at which the imbalance metric is lowest, or at user-specified points along the frontier.</p>
     </div>
 
     <pre class="usage"><span class='co'># S3 method for matchFrontier</span>
-<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>...</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>N</span>, <span class='va'>Ndrop</span>, <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for summary.matchFrontier</span>
-<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>digits</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -137,8 +137,20 @@
       <td><p>a <code>matchFrontier</code> object; the output of a call to <code><a href='makeFrontier.html'>makeFrontier()</a></code>.</p></td>
     </tr>
     <tr>
+      <th>N</th>
+      <td><p>the number of units remaining in the sample at the desired point(s) on the frontier. Exactly one of <code>N</code> or <code>Ndrop</code> can be specified.</p></td>
+    </tr>
+    <tr>
+      <th>Ndrop</th>
+      <td><p>the number of units dropped in the sample at the desired point(s) on the frontier. Exactly one of <code>N</code> or <code>Ndrop</code> can be specified.</p></td>
+    </tr>
+    <tr>
       <th>x</th>
       <td><p>a <code>summary.matchFrontier</code> object; the output of a call to <code>summary.matchFrontier()</code>.</p></td>
+    </tr>
+    <tr>
+      <th>digits</th>
+      <td><p>the number of significant digits to display the imbalance metric. Passed to <code><a href='https://rdrr.io/r/base/format.html'>format()</a></code>.</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -148,16 +160,17 @@
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>The lowest value of the imbalance metric may not occur at the end of the frontier (i.e., with the smallest remaining sample size). <code><a href='https://rdrr.io/r/base/summary.html'>summary()</a></code> can be used to complement <code><a href='plot.matchFrontier.html'>plot.matchFrontier()</a></code> to identify which sample size yields the least imbalance.</p>
-<p>A carrot (i.e., <code><a href='https://rdrr.io/r/base/Arithmetic.html'>^</a></code>) is printed below the column the corresponds to the <code>n</code> component of the <code>matchFrontier</code> object. It is this value that the <code>N</code> and <code>Ndrop</code> arguments refer to in <code><a href='frontier_to_matchit.html'>frontier_to_matchit()</a></code> and <code><a href='generateDataset.html'>generateDataset()</a></code>. For example, if the carrot is pointing at the <code>N control</code> column, then supplying a value of 50 to <code>N</code> in <code><a href='generateDataset.html'>generateDataset()</a></code> will produce a dataset with 50 control units (and however many treated units are present).</p>
+    <p>The lowest value of the imbalance metric may not occur at the end of the frontier (i.e., with the smallest remaining sample size). <code><a href='https://rdrr.io/r/base/summary.html'>summary()</a></code> can be used to complement <code><a href='plot.matchFrontier.html'>plot.matchFrontier()</a></code> to identify which sample size yields the least imbalance or to view the values of the imbalance metric at individual points along the frontier.</p>
+<p>A carrot (i.e., <code><a href='https://rdrr.io/r/base/Arithmetic.html'>^</a></code>) is printed below the column the corresponds to the <code>n</code> component of the <code>matchFrontier</code> object. It is this value that the <code>N</code> and <code>Ndrop</code> arguments refer to in <code>summary.matchFrontier()</code>, <code><a href='frontier_to_matchit.html'>frontier_to_matchit()</a></code>, and <code><a href='generateDataset.html'>generateDataset()</a></code>. For example, if the carrot is pointing at the <code>N control</code> column, then supplying a value of 50 to <code>N</code> in <code><a href='generateDataset.html'>generateDataset()</a></code> will produce a dataset with 50 control units (and however many treated units are present).</p>
+<p>Note that when no point on the frontier corresponds to the supplied value of <code>N</code> or <code>Ndrop</code>, the nearest point will be used.</p>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A <code>summary.matchFrontier</code> object, which contains the following components:</p>
-<dt>Ntreated</dt><dd><p>the number of treated units at the start, end, and best point on the frontier (best meaning with the lowest imbalance).</p></dd>
-<dt>Ncontrol</dt><dd><p>the number of control units at the start, end, and best point on the frontier.</p></dd>
-<dt>N</dt><dd><p>the total number of units at the start, end, and best point on the frontier.</p></dd>
-<dt>Stat</dt><dd><p>the value of the imbalance metric at the start, end, and best point on the frontier.</p></dd>
-<dt>bestind</dt><dd><p>the index of the best point on the frontier.</p></dd>
+<dt>Ntreated</dt><dd><p>the number of treated units at the start, end, and best point on the frontier (best meaning with the lowest imbalance), or at the user-specified points on the frontier.</p></dd>
+<dt>Ncontrol</dt><dd><p>the number of control units at the start, end, and best point on the frontier, or at the user-specified points on the frontier.</p></dd>
+<dt>N</dt><dd><p>the total number of units at the start, end, and best point on the frontier, or at the user-specified points on the frontier.</p></dd>
+<dt>Stat</dt><dd><p>the value of the imbalance metric at the start, end, and best point on the frontier, or at the user-specified points on the frontier.</p></dd>
+<dt>bestind</dt><dd><p>the index of the best point on the frontier. <code>NULL</code> when <code>N</code> or <code>Ndrop</code> are specified.</p></dd>
 <dt>QOI</dt><dd><p>the quantity of interest; the argument to <code>QOI</code> supplied in the original call to <code><a href='makeFrontier.html'>makeFrontier()</a></code>.</p></dd>
 <dt>metric</dt><dd><p>the imbalance metric; the argument to <code>metric</code> supplied in the original call to <code><a href='makeFrontier.html'>makeFrontier()</a></code>.</p></dd>
 

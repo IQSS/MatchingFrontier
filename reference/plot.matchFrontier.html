@@ -124,7 +124,7 @@
     </div>
 
     <pre class="usage"><span class='co'># S3 method for matchFrontier</span>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>x</span>, covs <span class='op'>=</span> <span class='cn'>NULL</span>, stat <span class='op'>=</span> <span class='st'>"std-diff"</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+<span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>x</span>, covs <span class='op'>=</span> <span class='cn'>NULL</span>, stat <span class='op'>=</span> <span class='st'>"std-diff"</span>, n.estimated <span class='op'>=</span> <span class='fl'>250</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -140,6 +140,10 @@
     <tr>
       <th>stat</th>
       <td><p>if <code>covs</code> is not <code>NULL</code>, the statistic to display for each variable across the frontier. Allowable options include <code>"std-diff"</code> for standardized mean differences (the default), <code>"diff"</code> for raw mean differences, <code>"ks"</code> for Kolmogorov-Smirnov statistics, <code>"std-mean"</code> for standardized means, <code>"mean"</code> for raw means, and <code>"ks-target"</code> for sample-target Kolmogorov-Smirnov statistics. See Details. Abbreviations allowed.</p></td>
+    </tr>
+    <tr>
+      <th>n.estimated</th>
+      <td><p>if <code>covs</code> is not <code>NULL</code>, the number of points along the frontier for which to compute balance statistics. Computing statistics at every point on the frontier can be time-consuming for large frontiers, especially when computing Kolmogorov-Smirnov statistics, so using values less than the number of points can save time at the expense of providing less detail in the frontier plot. The default is 250 or the number of points, whichever is smaller. Ignored when <code>covs = NULL</code>.</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -178,6 +182,7 @@
                    metric <span class='op'>=</span> <span class='st'>"mahal"</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Computing distance matrix...
 #&gt; Calculating frontier...
+#&gt;   |                                                                              |======================================================================| 100%
 #&gt; Done!</div><div class='input'>
 <span class='co'>#Plot the balance metric frontier</span>
 <span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span><span class='va'>f1</span><span class='op'>)</span>

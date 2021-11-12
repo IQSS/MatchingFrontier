@@ -126,7 +126,7 @@
     <pre class="usage"><span class='fu'>estimateEffects</span><span class='op'>(</span><span class='va'>frontier.object</span>,
                 <span class='va'>outcome</span>,
                 base.form <span class='op'>=</span> <span class='cn'>NULL</span>,
-                prop.estimated <span class='op'>=</span> <span class='fl'>1</span>,
+                n.estimated <span class='op'>=</span> <span class='fl'>250</span>,
                 method <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"none"</span>, <span class='st'>"extreme-bounds"</span>,
                            <span class='st'>"athey-imbens"</span><span class='op'>)</span>,
                 model.dependence.ests <span class='op'>=</span> <span class='fl'>100</span>,
@@ -136,7 +136,8 @@
                                     <span class='st'>"segmented"</span><span class='op'>)</span>,
                 seed <span class='op'>=</span> <span class='cn'>NULL</span>,
                 alpha <span class='op'>=</span> <span class='fl'>0.05</span>,
-                verbose <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+                verbose <span class='op'>=</span> <span class='cn'>TRUE</span>,
+                <span class='va'>...</span><span class='op'>)</span>
 
 <span class='co'># S3 method for frontierEstimates</span>
 <span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>...</span><span class='op'>)</span></pre>
@@ -157,8 +158,8 @@
       <td><p>a model formula with the outcome on the left hand side and the treatment (and optionally covariates) on the right hand side. The model is used to estimate treatment effects at each point along the frontier as well as their model sensitivity (if requested). If omitted, will use a simple regression of the supplied outcome variable on the treatment.</p></td>
     </tr>
     <tr>
-      <th>prop.estimated</th>
-      <td><p>the proportion of points along the frontier to estimate. Should be a value between 0 and 1. Estimating effects at every point on the frontier can be time-consuming for large frontiers, especially when model dependence bounds are also computed, so using values less than 1 can save time at the expense of providing less detail in the frontier estimates plot.</p></td>
+      <th>n.estimated</th>
+      <td><p>the number of points along the frontier to estimate. Estimating effects at every point on the frontier can be time-consuming for large frontiers, especially when model dependence bounds are also computed, so using values less than the number of points can save time at the expense of providing less detail in the frontier estimates plot. The default is 250 or the number of points, whichever is smaller.</p></td>
     </tr>
     <tr>
       <th>method</th>
@@ -182,7 +183,8 @@
     </tr>
     <tr>
       <th>...</th>
-      <td><p>ignored.</p></td>
+      <td><p>for <code>estimateEffects()</code>, <code>prop.estimated</code>, which determines the proportion of points along the frontier to estimate, can be passed instead of <code>n.estimated</code>. Prior versions of <code>estimateEffects()</code> used <code>prop.estimated</code>, and this will continue to be supported.</p>
+<p>Ignored for <code><a href='https://rdrr.io/r/base/print.html'>print()</a></code>.</p></td>
     </tr>
     </table>
 
@@ -228,6 +230,7 @@ If method = "extreme-bounds", the output will additionally have the attribute "s
                    metric <span class='op'>=</span> <span class='st'>"mahal"</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Computing distance matrix...
 #&gt; Calculating frontier...
+#&gt;   |                                                                              |======================================================================| 100%
 #&gt; Done!</div><div class='input'>
 <span class='va'>f1</span>
 </div><div class='output co'>#&gt; A matchFrontier object
@@ -239,7 +242,7 @@ If method = "extreme-bounds", the output will additionally have the attribute "s
 <span class='va'>e1</span> <span class='op'>&lt;-</span> <span class='fu'>estimateEffects</span><span class='op'>(</span><span class='va'>f1</span>,
                       base.form <span class='op'>=</span> <span class='va'>re78</span> <span class='op'>~</span> <span class='va'>treat</span> <span class='op'>+</span> <span class='va'>age</span> <span class='op'>+</span>
                                     <span class='va'>educ</span> <span class='op'>+</span> <span class='va'>married</span> <span class='op'>+</span> <span class='va'>re74</span>,
-                      prop.estimated <span class='op'>=</span> <span class='fl'>.2</span>, <span class='co'>#Should be higher</span>
+                      n.estimated <span class='op'>=</span> <span class='fl'>20</span>, <span class='co'>#Should be higher</span>
                       method <span class='op'>=</span> <span class='st'>"extreme-bounds"</span>,
                       model.dependence.ests <span class='op'>=</span> <span class='fl'>51</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; Getting extreme bounds model specifications...
