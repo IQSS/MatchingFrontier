@@ -180,8 +180,9 @@
 <span class='co'>#Usual MatchIt functions work</span>
 <span class='va'>m1</span>
 </div><div class='output co'>#&gt; A matchit object
-#&gt;  - method: An unspecified matching method
-#&gt;  - number of obs.: 614 (original), 505 (matched)
+#&gt;  - method: Matching frontier (minimizing the average pairwise Mahalanobis distance)
+#&gt;  - distance: Mahalanobis
+#&gt;  - number of obs.: 614 (original), 120 (matched)
 #&gt;  - target estimand: ATT
 #&gt;  - covariates: age, educ, married, re74</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/summary.html'>summary</a></span><span class='op'>(</span><span class='va'>m1</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; 
@@ -204,29 +205,30 @@
 #&gt; 
 #&gt; Summary of Balance for Matched Data:
 #&gt;         Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#&gt; age           22.2105       28.0303         -0.8134     0.2620    0.1489
-#&gt; educ          10.4868       10.2354          0.1250     0.3320    0.0428
-#&gt; married        0.1447        0.5128         -0.9398          .    0.3681
-#&gt; re74         786.7677     5619.2365         -0.9889     0.1006    0.2982
-#&gt;         eCDF Max
-#&gt; age       0.2545
-#&gt; educ      0.1182
-#&gt; married   0.3681
-#&gt; re74      0.5416
+#&gt; age           22.2105       22.0526          0.0221     0.9501    0.0053
+#&gt; educ          10.4868       10.4868          0.0000     0.9772    0.0000
+#&gt; married        0.1447        0.2895         -0.3695          .    0.1447
+#&gt; re74         786.7677      809.6928         -0.0047     1.0067    0.0129
+#&gt;         eCDF Max Std. Pair Dist.
+#&gt; age       0.0789          0.0405
+#&gt; educ      0.0000          0.0000
+#&gt; married   0.1447          0.7055
+#&gt; re74      0.1711          0.0247
 #&gt; 
 #&gt; Percent Balance Improvement:
 #&gt;         Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
-#&gt; age              -162.9      -63.1     -83.0    -61.4
-#&gt; educ             -127.5      -57.2     -23.2     -6.1
-#&gt; married           -13.7          .     -13.7    -13.7
-#&gt; re74              -37.1     -249.3     -32.6    -21.1
+#&gt; age                92.9       93.8      93.5     49.9
+#&gt; educ              100.0       96.7     100.0    100.0
+#&gt; married            55.3          .      55.3     55.3
+#&gt; re74               99.3       99.0      94.3     61.7
 #&gt; 
 #&gt; Sample Sizes:
-#&gt;           Control Treated
-#&gt; All           429     185
-#&gt; Matched       429      76
-#&gt; Unmatched       0     109
-#&gt; Discarded       0       0
+#&gt;               Control Treated
+#&gt; All            429.       185
+#&gt; Matched (ESS)   28.04      76
+#&gt; Matched         44.        76
+#&gt; Unmatched      385.       109
+#&gt; Discarded        0.         0
 #&gt; </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

@@ -76,7 +76,7 @@
       <h1 data-toc-skip>MatchingFrontier</h1>
                         <h4 class="author">Noah Greifer</h4>
             
-            <h4 class="date">2021-11-12</h4>
+            <h4 class="date">2021-11-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/IQSS/MatchingFrontier/blob/master/vignettes/MatchingFrontier.Rmd"><code>vignettes/MatchingFrontier.Rmd</code></a></small>
       <div class="hidden name"><code>MatchingFrontier.Rmd</code></div>
@@ -262,8 +262,9 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">mahal.matchit</span></code></pre></div>
 <pre><code>## A matchit object
-##  - method: An unspecified matching method
-##  - number of obs.: 614 (original), 529 (matched)
+##  - method: Matching frontier (minimizing the average pairwise Mahalanobis distance)
+##  - distance: Mahalanobis
+##  - number of obs.: 614 (original), 152 (matched)
 ##  - target estimand: ATT
 ##  - covariates: age, educ, race, married, nodegree, re74, re75</code></pre>
 <p>We can use <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> from <code>MatchIt</code> to assess balance on the covariates individually before and after matching, providing more detail than the original imbalance metric alone:</p>
@@ -288,23 +289,24 @@ D_{12}&amp;=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_
 ## 
 ## 
 ## Summary of Balance for Matched Data:
-##            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
-## age              23.7200       28.0303         -0.6024     0.3337    0.1115   0.2221
-## educ             10.3400       10.2354          0.0520     0.4243    0.0394   0.0982
-## raceblack         0.8700        0.2028          1.8351          .    0.6672   0.6672
-## racehispan        0.0600        0.1422         -0.3476          .    0.0822   0.0822
-## racewhite         0.0700        0.6550         -1.9740          .    0.5850   0.5850
-## married           0.1000        0.5128         -1.0540          .    0.4128   0.4128
-## nodegree          0.6700        0.5967          0.1611          .    0.0733   0.0733
-## re74            968.7927     5619.2365         -0.9517     0.1393    0.2876   0.5489
-## re75            446.6006     2466.4844         -0.6274     0.1220    0.2547   0.4476
+##            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max Std. Pair Dist.
+## age              23.7200       23.6600          0.0084     0.8956    0.0115     0.08          0.1146
+## educ             10.3400       10.3400          0.0000     0.9772    0.0000     0.00          0.0000
+## raceblack         0.8700        0.3600          1.4028          .    0.5100     0.51          1.6778
+## racehispan        0.0600        0.1300         -0.2960          .    0.0700     0.07          0.7189
+## racewhite         0.0700        0.5100         -1.4847          .    0.4400     0.44          1.7546
+## married           0.1000        0.4600         -0.9192          .    0.3600     0.36          1.1234
+## nodegree          0.6700        0.6700          0.0000          .    0.0000     0.00          0.0000
+## re74            968.7927     1041.6442         -0.0149     0.9684    0.0192     0.22          0.0553
+## re75            446.6006      436.0152          0.0033     0.9875    0.0048     0.03          0.0286
 ## 
 ## Sample Sizes:
-##           Control Treated
-## All           429     185
-## Matched       429     100
-## Unmatched       0      85
-## Discarded       0       0</code></pre>
+##               Control Treated
+## All            429.       185
+## Matched (ESS)   30.67     100
+## Matched         52.       100
+## Unmatched      377.        85
+## Discarded        0.         0</code></pre>
 <p>See <code><a href="https://kosukeimai.github.io/MatchIt/reference/summary.matchit.html">help("summary.matchit", package = "MatchIt")</a></code> for more information on <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> and its options. Here we can see the initial imbalance and the imbalance remaining after selecting a point along the frontier. (Note that selecting the first point on the frontier, before dropping any units, still involves pairing the units when using the pair distance-based frontier, so balance at this point will typically not coincide with the balance for the full dataset prior to matching.) Balance in the matched sample is much better for most of the covariates, though the categorical covariates remain imbalanced (this is a known weakness of the Mahalanobis distance for matching <span class="citation">(Rosenbaum <a href="#ref-rosenbaum2020" role="doc-biblioref">2020</a>; Stuart <a href="#ref-stuart2010" role="doc-biblioref">2010</a>)</span>). Finally, at the bottom we can see a summary of the remaining sample sizes. 100 treated units remain, just as we requested. Those 100 treated units are matched to a total of 52 control units because matching is done with replacement in <code>MatchingFrontier</code>. However, the matching weights required to estimate the FSATT only yield an effective sample size (ESS) of approximately 31 for for the control units.</p>
 <p>To estimate the treatment effect at this point on the frontier, we can use a regression of the outcome on the treated (and optionally the covariates) in the matched sample. The matched dataset can be extracted in one of two ways: using <code><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data()</a></code> or <code><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">get_matches()</a></code> on the <code>matchit</code> object, or using <code><a href="../reference/generateDataset.html">generateDataset()</a></code> on the <code>matchFrontier</code> object. Both yield identical results.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
