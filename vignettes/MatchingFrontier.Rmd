@@ -40,7 +40,7 @@ Matching methods have become extremely popular among researchers working with ob
 
 Matching methods are designed to reduce imbalance in data by selectively pruning and optionally pairing observations, which in turn reduces model dependence. However, pruning reduces sample size and therefore may increase variance in the eventual estimates. Users of matching are then confronted with the perennial bias-variance trade-off. Perhaps surprisingly, existing approaches to matching do not conduct the implied joint optimization of bias and variance. Rather, they improve one dimension of the optimization and leave the second to the user. Such an approach is time consuming and rarely yields the optimal solution. @king2017 proposes a solution to this joint optimization, which is implemented in `MatchingFrontier`. We point users of `MatchingFrontier` to @king2017 for algorithmic details and theoretical proofs.
 
-Frontiers depend on the imbalance metric used. `MatchingFrontier` includes the average Mahlanobis metric and L1 statistic described in @king2017, as well as a more recently developed metric known as the energy distance, developed by @székely2013 and described by @huling2020 for use in comparing distributions in observational studies. Other metrics are available as well, creating three classes of frontiers that correspond to a given imbalance metric and matching method; these include pair distance-based frontiers, bin-based frontiers, and energy distance-based frontiers.
+Frontiers depend on the imbalance metric used. `MatchingFrontier` includes the average Mahalanobis metric and L1 statistic described in @king2017, as well as a more recently developed metric known as the energy distance, developed by @székely2013 and described by @huling2020 for use in comparing distributions in observational studies. Other metrics are available as well, creating three classes of frontiers that correspond to a given imbalance metric and matching method; these include pair distance-based frontiers, bin-based frontiers, and energy distance-based frontiers.
 
 Estimated effects generalize to different target samples depending on how the matching is performed. In `MatchingFrontier`, the user can choose the estimand, i.e., the effect corresponding to the group to which the effect is meant to generalize, from among the following choices:
 
@@ -58,13 +58,13 @@ Below, we describe the different frontiers available and which quantities of int
 
 ### Pair distance-based frontiers
 
-Pair distance-based frontiers involve a first step of pairing observations based on the distances between them (i.e., using 1:1 matching), and the frontier is formed by discarding one pair at a time until none remain, similar to applying a tighter and tighter caliper. The imbalance metric is the average of the pairwise distances of the remaining units. When pair distance-based metrics are equal to zero, the remaining units comprise pairs of units identical on the included covariates. Pairing is done with replacement, so each unit can be used as a pair to multiple other units. The distance between units used to form the pairs and compute the imbalance metric can be computed as the Mahalanobis distance, the Euclidean distance, or a user-supplied distance.
+Pair distance-based frontiers involve a first step of pairing observations based on the distances between them (i.e., using 1:1 or k:1 matching), and the frontier is formed by discarding one pair at a time until none remain, similar to applying a tighter and tighter caliper. The imbalance metric is the average of the pairwise distances of the remaining units. When pair distance-based metrics are equal to zero, the remaining units comprise pairs of units identical on the included covariates. Pairing is done with replacement, so each unit can be used as a pair to multiple other units. The distance between units used to form the pairs and compute the imbalance metric can be computed as the Mahalanobis distance, the Euclidean distance on the scaled or original covariates, or a user-supplied distance.
 
 These frontiers can only be used when the quantity of interest is the FSATE or FSATT. For the FSATE, each treated unit is paired with a control unit, and each control unit is paired with a treated unit; these processes are independent so a control unit may not be paired with the treated unit it is paired to. Each pair can be thought of as a single-headed arrow pointing from the focal unit to its paired unit; pairs are not bi-directional (except by chance). The effect estimated after the initial match (prior to dropping any units) corresponds to the SATE; once any units are dropped, the estimand corresponds to the FSATE. For the FSATT, each treated unit is paired with a control unit (i.e., arrows emanate from treated units but not from control units), and the frontier is formed by dropping treated units. The effect estimated after the initial match (prior to dropping any units) corresponds to the SATT; once any units are dropped, the estimand corresponds to the FSATT.
 
 ### Bin-based frontiers
 
-Bin-based frontiers involve assigning units into bins based on the unique combination of their coarsened covariates. The frontier is formed by dropping one unit at a time, in particular, the unit that when dropped would yield the greatest decrease in the imbalance metric. Unlike pair distance-based frontiers, bin-based frontiers are formed by subset selection rather than pairing; units are not paired with each other, and the initial point of the frontier is computed on the unmodified sample (in contrast to pair distance-based frontiers, where the initial point is computed after pairing). Bin-based frontiers can be thought of as a close relative to coarsened exact matching [@iacus2012], as implemented in the `cem` and in `MatchIt` packages (i.e., using `matchit()` with `method = "cem"`). (In general, it makes more sense to perform coarsened exact matching than to create a bin-based frontier because all points along the frontier will have worse balance than the result of a coarsened exact match [@king2017]; bin-based frontiers are provided here largely for comparison purposes.)
+Bin-based frontiers involve assigning units into bins based on the unique combination of their coarsened covariates. The frontier is formed by dropping one unit at a time, in particular, the unit that when dropped would yield the greatest decrease in the imbalance metric. Unlike pair distance-based frontiers, bin-based frontiers are formed by subset selection rather than pairing; units are not paired with each other, and the initial point of the frontier is computed on the unmodified sample (in contrast to pair distance-based frontiers, where the initial point is computed after pairing). Bin-based frontiers can be thought of as a close relative to coarsened exact matching [@iacus2012], as implemented in the `cem` and `MatchIt` packages (i.e., using `matchit()` with `method = "cem"`). (In general, it makes more sense to perform coarsened exact matching than to create a bin-based frontier because all points along the frontier will have worse balance than the result of a coarsened exact match [@king2017]; bin-based frontiers are provided here largely for comparison purposes.)
 
 The available imbalance metrics for bin-based frontiers include the $L_1$ and $L_2$ statistics, which summarize the discrepancy between the relative proportions of treated and control units in each bin [@king2017] and are computed as
 
@@ -80,7 +80,7 @@ $$
 
 where $H$ is a vector of the number of bins for the covariates, $\ell_1 \dots\ell_k$ are the strata formed by applying the bin boundaries to the covariates, and $f_{\ell_1 \dots\ell_k}$ and $g_{\ell_1 \dots\ell_k}$ are the proportion of treated and control units, respectively, in each stratum. The number of bins to use for each covariate can be chosen by the user or computed automatically as the number of bins that yield the median value of the imbalance metric across a random sample of binnings in the full sample, thereby removing the dependence of the frontier on a specific choice by the user [@iacus2011].
 
-These frontiers can be used when the quantity of interest is the FSATE or SATT. For the FSATE, units are dropped one at a time. Units will be dropped from the bins with the largest treatment group imbalance (i.e., so units with no members of the other bin will be dropped first). For the SATT, only control units can be dropped; all treated units will remain, even if no controls units share a bin with them.
+These frontiers can be used when the quantity of interest is the FSATE or SATT. For the FSATE, units are dropped one at a time. Units will be dropped from the bins with the largest treatment group imbalance (i.e., so units with no members of the other bin will be dropped first). For the SATT, only control units can be dropped; all treated units will remain, even if no control units share a bin with them.
 
 ### Energy distance-based frontiers
 
@@ -94,7 +94,7 @@ $$\begin{align}
 D_{12}&=\frac{1}{N_1 N_2}\sum_{i \in \mathcal{X}_1}{\sum_{j \in \mathcal{X}_2}{||X_{1i}-X_{2j}||_2}} \\ D_{11} &= \frac{1}{N_1^2}\sum_{i \in \mathcal{X}_1}{\sum_{i' \in \mathcal{X}_1}{||X_{1i}-X_{1i'}||_2}} \\ D_{22} &= \frac{1}{N_2^2}\sum_{j \in \mathcal{X}_2}{\sum_{j' \in \mathcal{X}_2}{||X_{2j}-X_{2j'}||_2}}
 \end{align}$$
 
-and where $\mathcal{X}_1$ and $\mathcal{X}_2$ are two samples of size $N_1$ and $N_2$ of (scaled) variables $\mathbf{X}_1$ and $\mathbf{X}_2$, respectively, and $||.||_2$ is the $L_2$-norm (i.e., Euclidean distance). At each point on the frontier, each unit's contribution to the energy distance is computed as the difference between the energy distance with them included and that with them dropped, and the unit with the greatest contribution is dropped. Energy-distance based frontiers can be thought of as a greedy, nonsmooth version of Huling and Mak's [-@huling2020] energy balancing, which estimates weights that directly minimize the energy distance in the weighted sample. The energy distance-based frontier can be useful when weights other than 0 or 1 are undesirable or the optimization required for energy balancing is intractable. Unlike pair distance-based frontiers, the energy distance-based frontier is non-monotonic; there is often a point when discarding additional units increases rather than decreases the imbalance metric, a phenomenon related to the propensity score paradox described in @king2019.
+and where $\mathcal{X}_1$ and $\mathcal{X}_2$ are two samples of size $N_1$ and $N_2$ of (scaled) variables $\mathbf{X}_1$ and $\mathbf{X}_2$, respectively, and $||.||_2$ is the $L_2$-norm (i.e., Euclidean distance). At each point on the frontier, each unit's contribution to the energy distance is computed as the difference between the energy distance with it included and that with it dropped, and the unit with the greatest contribution is dropped. Energy-distance based frontiers can be thought of as a greedy, nonsmooth version of Huling and Mak's [-@huling2020] energy balancing, which estimates weights that directly minimize the energy distance in the weighted sample. The energy distance-based frontier can be useful when weights other than 0 or 1 are undesirable or the optimization required for energy balancing is intractable. Unlike pair distance-based frontiers, the energy distance-based frontier is non-monotonic; there is often a point when discarding additional units increases rather than decreases the imbalance metric.
 
 Energy distance-based frontiers can be used when the quantity of interest is the SATE, FSATE, or SATT, making them highly versatile. For the SATE, the energy distance is computed as Huling and Mak's [-@huling2020] "improved" energy distance, which is the sum of the energy distance between the treated group and the original full sample, the energy distance between the control group and the full sample, and the energy distance between the treated and control groups. Units from either group may be dropped. As the energy distance decreases, the resulting groups each increasingly resemble the full sample and each other. For the FSATE and SATT, the energy distance is computed only between the treated and control groups (ignoring the distance from the full sample), and for the SATT, only control units can be dropped.
 
@@ -111,7 +111,7 @@ data("lalonde", package = "MatchIt")
 head(lalonde)
 ```
 
-The statistical quantity of interest is the causal effect of the treatment (`treat`) on 1978 earnings (`re78`). The other variables are pre-treatment covariates. See `help("lalonde", package = "MatchIt")` for more information on this dataset. Though the original focus with this dataset was to estimate the average treatment effect in the treated, which corresponded to the effect estimated in the accompanying randomized trial, here we will consider this and other quantities of interest.
+The statistical quantity of interest is the causal effect of the treatment (`treat`) on 1978 earnings (`re78`). The other variables are pre-treatment covariates. See `help("lalonde", package = "MatchIt")` for more information on this dataset. The original focus with this dataset was to estimate the average treatment effect in the treated (SATT), which corresponded to the effect estimated in the accompanying randomized trial.
 
 The typical workflow for using `Matchingfrontier` is the following. First, the user computes the balance-sample size frontier corresponding to the chosen quantity of interest (i.e., estimand) and imbalance metric; then, the frontier is visualized in a plot. The user can then estimate treatment effects at each point along the frontier or choose a single point on the frontier on which to estimate the effect.
 
@@ -124,10 +124,11 @@ mahal.frontier <- makeFrontier(treat ~ age + educ + race + married +
                                  nodegree + re74 + re75,
                                data = lalonde, 
                                QOI = "FSATT", 
-                               metric = "mahal")
+                               metric = "dist",
+                               verbose = FALSE)
 ```
 
-There are a few ways to specify the arguments to `makeFrontier()`; see `help("makeFrontier")` for details. Here, we used the formula interface, which requires a model formula of the form `A ~ X1 + X2 + ...` where `A` corresponds to the treatment and `X1` and `X2` are the pretreatment covariates. We must also supply a dataset to the `data` argument. Note that no model is being fit here; the model formula serves to indicate which variable is the treatment and which are the covariates. The `QOI` (i.e., quantity of interest) argument corresponds to the desired estimand; here, we select the FSATT, but others are available depending on the type of frontier, as described previously. The `metric` argument corresponds to the imbalance metric used. Here, we entered `"mahal"` to request the average Mahalanobis imbalance be used.
+There are a few ways to specify the arguments to `makeFrontier()`; see `help("makeFrontier")` for details. Here, we used the formula interface, which requires a model formula of the form `A ~ X1 + X2 + ...` where `A` corresponds to the treatment and `X1` and `X2` are the pre-treatment covariates. We must also supply a dataset to the `data` argument. Note that no model is being fit here; the model formula serves to indicate which variable is the treatment and which are the covariates. The `QOI` (i.e., quantity of interest) argument corresponds to the desired estimand; here, we select the FSATT, but others are available depending on the type of frontier, as described previously. The `metric` argument corresponds to the imbalance metric used. Here, we entered `"dist"` to request the average pairwise distance between matched units be used; by default the pairwise distance is computed as the Mahalanobis distance.
 
 The frontier is stored in the `matchFrontier` object, which we have called `mahal.frontier`. Printing `mahal.frontier` provides a summary of the type of frontier and its components:
 
@@ -158,8 +159,7 @@ summary(mahal.frontier, Ndrop = seq(40, 120, by = 20))
 # summary(mahal.frontier, N = seq(65, 145, by = 20)) #same thing
 ```
 
-
-We can also view information about balance for individual covariates using `plot.matchFrontier()`. To do so, we supply the names of individual covariates to the `covs` argument of `plot.matchFrontier()` and set `stat = "std-diff"` for standardized mean differences, which are useful for continuous covariates, and `stat = "diff`, and for raw mean differences, which are useful for sets of variables that are on the same scale (like binary covariates).
+We can also view information about balance for individual covariates using `plot.matchFrontier()`. To do so, we supply the names of individual covariates to the `covs` argument of `plot.matchFrontier()` and set `stat = "std-diff"` for standardized mean differences, which are useful for continuous covariates, and `stat = "diff"` for raw mean differences, which are useful for sets of variables that are on the same scale (like binary covariates).
 
 ```{r, fig.show='hold'}
 #Standardized mean differences for continuous covariates
@@ -175,7 +175,7 @@ Here we can see that after an initial imbalance (the three dots on the left side
 
 To view (standardized) means for each covariate, which allows us to see how the distribution of covariates in the estimation sample varies across the frontier, we can set `stat = "std-mean"` for standardized means and `stat = "mean"` for raw means. Using standardized means allows us to see how the standardized mean difference between the covariates in the estimation sample and the covariates in the target sample varies across the frontier; values close to zero indicate that the estimation sample strongly resembles the target sample. Using raw means allows us to see the actual location of the covariate means across the frontier (though make sure variables are on the same scale if multiple are to be included in the same plot!).
 
-```{r, fig.show='hold'}
+```{r}
 #Standardized means for continuous covariates
 plot(mahal.frontier, covs = c("age", "educ", "re74"),
      stat = "std-mean")
@@ -191,7 +191,7 @@ We can see that for some covariates, the distribution in the remaining sample di
 
 We can estimate treatment effects at each point along the frontier or at a single point. First, we'll demonstrate extracting a single dataset from the frontier and further examining it.
 
-`MatchingFrontier` interfaces with `MatchIt` to use the balance assessment and reporting capabilities of `MatchIt` and provide a simple, well-documented workflow for estimating effects after matching. We can use the function `frontier_to_matchit()` to extract a matching specification at one point on the frontier and turn it into a `MatchIt` object as if it had resulted from a call to `MatchIt::matchit()`. We need to select the point along the frontier for which this extraction is desired, and this can be specified either based on the number of units dropped or the number of units remaining. Here, we'll pick the point on the frontier with 100 units remaining (corresponding to dropping 85 units).
+`MatchingFrontier` interfaces with `MatchIt` to use the balance assessment and reporting capabilities of `MatchIt` and provide a simple, well-documented workflow for estimating effects after matching. See `vignette("MatchIt", package = "MatchIt")` for an introduction to using `MatchIt`. We can use the function `frontier_to_matchit()` to extract a matching specification at one point on the frontier and turn it into a `MatchIt` object as if it had resulted from a call to `MatchIt::matchit()`. We need to select the point along the frontier for which this extraction is desired, and this can be specified either based on the number of units dropped or the number of units remaining. Here, we'll pick the point on the frontier with 100 units remaining (corresponding to dropping 85 units).
 
 ```{r}
 mahal.matchit <- frontier_to_matchit(mahal.frontier, N = 100)
@@ -207,10 +207,10 @@ mahal.matchit
 We can use `summary()` from `MatchIt` to assess balance on the covariates individually before and after matching, providing more detail than the original imbalance metric alone:
 
 ```{r}
-summary(mahal.matchit, improvement = FALSE)
+summary(mahal.matchit)
 ```
 
-See `help("summary.matchit", package = "MatchIt")` for more information on `summary()` and its options. Here we can see the initial imbalance and the imbalance remaining after selecting a point along the frontier. (Note that selecting the first point on the frontier, before dropping any units, still involves pairing the units when using the pair distance-based frontier, so balance at this point will typically not coincide with the balance for the full dataset prior to matching.) Balance in the matched sample is much better for most of the covariates, though the categorical covariates remain imbalanced (this is a known weakness of the Mahalanobis distance for matching [@rosenbaum2020; @stuart2010]). Finally, at the bottom we can see a summary of the remaining sample sizes. 100 treated units remain, just as we requested. Those 100 treated units are matched to a total of 52 control units because matching is done with replacement in `MatchingFrontier`. However, the matching weights required to estimate the FSATT only yield an effective sample size (ESS) of approximately 31 for for the control units.
+See `help("summary.matchit", package = "MatchIt")` for more information on `summary()` and its options. Here we can see the initial imbalance and the imbalance remaining after selecting a point along the frontier. (Note that selecting the first point on the frontier, before dropping any units, still involves pairing the units when using the pair distance-based frontier, so balance at this point will typically not coincide with the balance for the full dataset prior to matching.) Balance in the matched sample is much better for most of the covariates, though the categorical covariates remain imbalanced (this is a known weakness of the Mahalanobis distance for matching [@rosenbaum2020; @stuart2010]). Finally, at the bottom we can see a summary of the remaining sample sizes. 100 treated units remain, just as we requested. Those 100 treated units are matched to a total of 43 control units because matching is done with replacement in `MatchingFrontier`. However, the matching weights required to estimate the FSATT only yield an effective sample size (ESS) of approximately 20 for for the control units.
 
 To estimate the treatment effect at this point on the frontier, we can use a regression of the outcome on the treated (and optionally the covariates) in the matched sample. The matched dataset can be extracted in one of two ways: using `match.data()` or `get_matches()` on the `matchit` object, or using `generateDataset()` on the `matchFrontier` object. Both yield identical results.
 
@@ -221,13 +221,13 @@ mahal.matched.data <- generateDataset(mahal.frontier, N = 100)
 head(mahal.matched.data)
 ```
 
-The returned dataset contains only the matched units for use in estimating treatment effects. With pair distance-based frontiers, we have the option to set `dup = TRUE`, which creates a dataset with an entry for every for unit for every time that unit is used in a match. Because several control units are matched to multiple treated units, they will appear more than once in the returned dataset. Setting `dup = FALSE` (the default) instead requires that each unit appears no more than once in the returned dataset, with weights present to reflect the reuse of units, but information about pair membership will be lost; this is equivalent to using `MatchIt::match.data()` on the returned `matchit` object. See `help("generateDataset")` for more details.
+The returned dataset contains only the matched units for use in estimating treatment effects. With pair distance-based frontiers, we have the option to set `dup = TRUE`, which creates a dataset with an entry for every for unit for every time that unit is used in a match; this is equivalent to using `MatchIt::get_matches()` on the returned `matchit` object. Because several control units are matched to multiple treated units, they will appear more than once in the returned dataset. Setting `dup = FALSE` (the default) instead requires that each unit appears no more than once in the returned dataset, with weights present to reflect the reuse of units, but information about pair membership will be lost; this is equivalent to using `MatchIt::match.data()` on the returned `matchit` object. See `help("generateDataset")` for more details.
 
 ### Estimating treatment effects and assessing model sensitivity
 
 We can use regression to estimate the treatment effect in the matched sample. See `vignette("estimating-effects", package = "MatchIt")` for more details on estimating treatment effects after matching with replacement. Here we use a linear regression adjusting for the matched covariates. We must include use the matching weights in the regression and use robust standard errors to account for the weights [@hill2006].
 
-```{r,warn=F}
+```{r, warn=F, eval=requireNamespace("lmtest", quietly = TRUE)}
 library("lmtest")
 library("sandwich")
 
@@ -239,7 +239,7 @@ coeftest(fit, vcov. = vcovHC)["treat",, drop = FALSE]
 
 We chose a specific outcome model, but we could have chosen others, e.g., by including powers of covariates or interactions between them. We can assess how dependent on our choice of model our results are using the `modelDependence()` function in `MatchingFrontier`. The output of `modelDependence()` is a pair of bounds representing the treatment effects possible from specifying many possible models. Narrow bounds indicate that our results are not sensitive to our choice of model, which is a good thing because it implies our conclusions are not simply the result of fishing for a desired outcome. See also the `ExtremeBounds` package [@hlavac2016], which provides greater functionality focused on variable selection.
 
-`MatchingFrontier` has two methods of assessing model dependence: the extreme bounds procedure [@leamer1983], which involves fitting a random selection of possible models to the data and extracting treatment effects estimates from each one, and the Athey-Imbens procedure [@athey2015], which involves splitting the data across covariate boundaries and examining how variable the effect estimates are across splits. When using pair distance-based frontiers, only the extreme bounds procedure is available, so we use that below.
+`MatchingFrontier` has two methods of assessing model dependence: the extreme bounds procedure [@leamer1983], which involves fitting a random selection of possible models to the data and extracting treatment effects estimates from each one, and the Athey-Imbens procedure [@athey2015], which involves splitting the data across covariate boundaries and examining the variability of the effect estimates across splits. When using pair distance-based frontiers, only the extreme bounds procedure is available, so we use that below.
 
 ```{r}
 mahal.MD <- modelDependence(re78 ~ treat + age + educ + race + 
@@ -290,7 +290,7 @@ As sample size decreases, the confidence band width increases, as expected.
 
 ### Using other types of frontiers
 
-Above, we demonstrated the use of `MatchingFrontier` with a pair distance-based frontier. Other type of frontiers work slightly differently because no pairing is done, so the frontier tracks changes from a truly unadjusted sample to a fully adjusted sample, where the adjustment comes in form of discarding units. In contrast, the first step of the pair distance-based frontier tends to be better balanced than the original dataset because pairing has already been done. Below, we briefly demonstrate using an energy distance-based frontier to estimate the SATE.
+Above, we demonstrated the use of `MatchingFrontier` with a pair distance-based frontier. Other type of frontiers work slightly differently because no pairing is done, so the frontier tracks changes from a truly unadjusted sample to a fully adjusted sample, where the adjustment comes in form of discarding units. In contrast, the first step of the pair distance-based frontier tends to be better balanced than the original dataset because pairing has already been done. Below, we briefly demonstrate using an energy distance-based frontier to estimate the SATT.
 
 First, we compute the frontier using `makeFrontier()`.
 
@@ -298,12 +298,13 @@ First, we compute the frontier using `makeFrontier()`.
 energy.frontier <- makeFrontier(treat ~ age + educ + race + 
                                   married + nodegree + re74 + re75,
                                 data = lalonde, 
-                                QOI = "SATE", 
-                                metric = "energy")
+                                QOI = "SATT", 
+                                metric = "energy",
+                                verbose = FALSE)
 energy.frontier
 ```
 
-Next, we can plot the frontier to see the relationship between sample size and imbalance. Because we are estimating the SATE, imbalance represents the difference between the distribution of the treated units, the distribution of the control units, and the distribution of the original (target) sample. Thus, as imbalance decreases, the groups look more similar to each other and to the original sample.
+Next, we can plot the frontier to see the relationship between sample size and imbalance. Because we are estimating the SATT, imbalance represents the difference between the distribution of the control units and the distribution of the target (treated) group. Thus, as imbalance decreases, the control group looks more similar to the treated group.
 
 ```{r}
 plot(energy.frontier)
@@ -315,34 +316,31 @@ In contrast to pair distance-based frontiers, energy distance-based frontiers ar
 summary(energy.frontier)
 ```
 
-Here we can see that the balance is best when 182 units remain, though the plot indicates that it is possible to have similar balance while discarding fewer units. We can identify these points using `summary()` with `N` or `Ndrop` specified:
+Here we can see that the balance is best when 37 units remain, though the plot indicates that it is possible to have similar balance while discarding fewer units. We can identify these points using `summary()` with `N` or `Ndrop` specified:
 
 ```{r}
-summary(energy.frontier, N = seq(182, 222, by = 10))
+summary(energy.frontier, N = seq(27, 127, by = 10))
 ```
-
 
 We can use the steps previously described to extract the dataset at a point on the frontier and estimate its treatment effect and model dependence. First we will turn that point into a `matchit` object and assess balance on the covariates.
 
 ```{r}
-energy.matchit <- frontier_to_matchit(energy.frontier, N = 182)
-#same thing:      frontier_to_matchit(energy.frontier, Ndrop = 432)
+energy.matchit <- frontier_to_matchit(energy.frontier, N = 37)
+#same thing:      frontier_to_matchit(energy.frontier, Ndrop = 148)
 
 summary(energy.matchit, un = FALSE)
 ```
 
-We can see that mean difference are very low in the extracted sample, indicating good balance. We can move forward with effect estimation and assessing model dependence after extracting the matched dataset.
+We can see that standardized mean differences are very low in the extracted sample, indicating good balance. We can move forward with effect estimation and assessing model dependence after extracting the matched dataset.
 
 ```{r}
-energy.matched.data <- generateDataset(energy.frontier, N = 182)
+energy.matched.data <- generateDataset(energy.frontier, N = 37)
 #Same result:          MatchIt::match.data(energy.matchit, data = lalonde)
 ```
 
-Because no pairing has taken place, we don't need to worry about replicating units in the dataset, so we don't have to set `dup = TRUE` and our output is the same as had we used `match.data()` on the `matchit` object.
+Below, we estimate the SATT using regression as we did before (note the weights are unnecessary here but it's good practice to use them):
 
-Below, we estimate the SATE using regression as we did before (note the weights are unnecessary here but it's good practice to use them):
-
-```{r}
+```{r, eval=requireNamespace("lmtest", quietly = TRUE)}
 # library("lmtest") #already loaded
 # library("sandwich")
 
@@ -365,13 +363,13 @@ energy.MD <- modelDependence(re78 ~ treat + age + educ + race +
 energy.MD
 ```
 
-Next, we will estimate effects and model dependence bounds across the frontier.
+Next, we will estimate effects and model dependence bounds across the frontier. Because most points along the frontier have inadequate balance, we will only estimate treatment effects at the points along the frontier with the smallest energy distances using the `Ndrop` argument, which should contain the bounds of the range of points along the frontier for which effects are to be estimated. Here, we restrict effect estimation to points on the frontier with between 27 and 127 control units remaining.
 
 ```{r}
 energy.estimates <- estimateEffects(energy.frontier, 
                                     base.form = re78 ~ treat + age +
                                       educ + race + married + nodegree + re74 + re75,
-                                    prop.estimated = .5,
+                                    N = c(27, 127),
                                     method = "athey-imbens", 
                                     cutpoint.method = "mean",
                                     verbose = FALSE)
@@ -394,6 +392,6 @@ Remember that we targeted two different quantities of interest with the Mahalano
 
 ## Conclusion
 
-`MatchingFrontier` provides a user-friendly interface to assessing the balance-sample size frontier in matching for observational studies. By using the tools presented here, users can estimate effects in an optimal way (given the choice of imbalance metric and estimand) and be honest about the dependence of their results on their modeling choices. By interfacing directly with `MatchIt`, `MatchingFrontier` connects the two packages so that users can take advantage of the assessment and plotting tools `MatchIt` has to offer.
+`MatchingFrontier` provides a user-friendly interface to assessing the balance-sample size frontier in matching for observational studies. By using the tools presented here, users can estimate effects in an optimal way (given the choice of imbalance metric and estimand) and be honest about the dependence of their results on their modeling choices. By interfacing directly with `MatchIt`, `MatchingFrontier` allows users to take advantage of the assessment and plotting tools `MatchIt` has to offer.
 
 ## References

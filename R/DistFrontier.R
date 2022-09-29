@@ -1,36 +1,58 @@
-# DistFrontier <- function(treatment, dataset, metric, QOI, match.on, distance.mat = NULL){
-DistFrontier <- function(treatment, dataset, formula, metric, QOI, distance.mat = NULL, verbose){
+DistFrontier <- function(treatment, data, formula, metric, QOI, ratio, verbose){
 
-  treat <- dataset[[treatment]]
+  treat <- data[[treatment]]
 
-  if (verbose && metric != "custom") cat("Computing distance matrix...\n")
+  if (is.null(attr(metric, "distance.mat"))) distance.mat <- "mahalanobis"
+  else distance.mat <- attr(metric, "distance.mat")
 
-  if (metric == "mahal") {
-    covs.mat <- get.covs.matrix(formula, dataset)
-    distance.mat <- calculateMdist(covs.mat, treat)
-  }
-  else if (metric == "euclid") {
-    covs.mat <- get.covs.matrix(formula, dataset)
-    distance.mat <- calculateEdist(covs.mat, treat)
-  }
-  else if (metric == "custom") {
-    if (is.null(distance.mat)) {
-      customStop("'distance.mat' must be specified when metric = \"custom\".", "makeFrontier()")
+  if (is.character(distance.mat) && length(distance.mat) == 1L && distance.mat != "custom") {
+    if (verbose) cat("Computing distance matrix...\n")
+
+    distance.mat <- match_arg(distance.mat, c("mahalanobis", "robust_mahalanobis", "scaled_euclidean", "euclidean"))
+
+    distance.mat <- {
+      if (distance.mat == "mahalanobis") {
+        MatchIt::mahalanobis_dist(formula, data)
+      }
+      else if (distance.mat == "scaled_euclidean") {
+        MatchIt::scaled_euclidean_dist(formula, data)
+      }
+      else if (distance.mat == "euclidean") {
+        MatchIt::euclidean_dist(formula, data)
+      }
+      else if (distance.mat == "robust_mahalanobis") {
+        MatchIt::robust_mahalanobis_dist(formula, data)
+      }
     }
-    if (!is.matrix(distance.mat) || !is.numeric(distance.mat) ||
-        nrow(distance.mat) != sum(treat == 1) || ncol(distance.mat) != sum(treat == 0) ||
-        anyNA(distance.mat)) {
-      customStop("'distance.mat' must be an N1 x N0 numeric matrix when metric = \"custom\".", "makeFrontier()")
+  }
+  else {
+    if (verbose) cat("Checking distance matrix...\n")
+
+    if (inherits(distance.mat, "dist")) distance.mat <- as.matrix(distance.mat)
+
+    okay <- is.matrix(distance.mat) && !any(distance.mat < 0)
+    if (okay) {
+      if (all(dim(distance.mat) == length(treat))) {
+        if (!check_symmetric(unname(distance.mat))) okay <- FALSE
+        else distance.mat <- distance.mat[treat == 1, treat == 0]
+      }
+      else if (nrow(distance.mat) != sum(treat == 1) || ncol(distance.mat) != sum(treat == 0)) {
+        okay <- FALSE
+      }
+    }
+    if (!okay) {
+      customStop("'distance.mat' must be one of \"mahalanobis\", \"scaled\", or \"euclidean\" or a square, symmetric, N x N or N1 x N0 distance matrix when metric = \"dist\".",
+                 "makeFrontier()")
     }
   }
 
   if (verbose) cat("Calculating frontier...\n")
 
   if (QOI == "FSATE") {
-    frontier <- distToFrontierFSATE(distance.mat, treat, verbose)
+    frontier <- distToFrontierFSATE(distance.mat, treat, verbose, ratio)
   }
   else if (QOI == "FSATT") {
-    frontier <- distToFrontierFSATT(distance.mat, treat, verbose)
+    frontier <- distToFrontierFSATT(distance.mat, treat, verbose, ratio)
   }
 
   if (verbose) cat("Done!\n")

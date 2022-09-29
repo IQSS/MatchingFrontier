@@ -64,24 +64,30 @@ plot.frontierEstimates <- function(x,
 
         p <- p + geom_ribbon(aes(ymin = band.mins, ymax = band.maxs),
                              fill = band.col, color = band.border.col,
-                             alpha = band.alpha) +
-            geom_errorbar(aes(x = 0, ymin = band.min.un, ymax = band.max.un),
-                          color = "black", width = x$n/100)
+                             alpha = band.alpha)
+
+        if (min(x$Xs) == 0) {
+          p <- p + geom_errorbar(aes(x = 0, ymin = band.min.un, ymax = band.max.un),
+                                 color = "black", width = x$n/100)
+        }
 
     }
 
-    breaks <- scales::breaks_extended()(x$Xs)
-    upper.breaks <- x$n - breaks
+    upper_breaks <- function(y, ...) {
+      x$n - scales::breaks_extended()(x$n - y, ...)
+    }
 
     p <- p + geom_line(aes(y = x$coefs), ...) +
         scale_x_continuous(sec.axis = dup_axis(trans = ~ x$n - ., name = sub("dropped", "remaining", xlab),
-                                               breaks = upper.breaks),
-                           breaks = breaks) +
-        geom_point(aes(x = 0, y = x$un$coef), color = "black") +
+                                               breaks = upper_breaks)) +
         labs(title = "Effects plot", subtitle = sub, x = xlab, y = ylab) +
         theme_bw() +
         theme(plot.title = element_text(hjust = .5),
               plot.subtitle = element_text(hjust = .5))
+
+    if (min(x$Xs) == 0) {
+      p <- p + geom_point(aes(x = 0, y = x$un$coef), color = "black")
+    }
 
     p
 }

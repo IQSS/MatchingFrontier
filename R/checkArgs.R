@@ -1,6 +1,6 @@
-checkArgs <- function(QOI, metric, outcome = NULL, ...){
+checkArgs <- function(QOI, metric, ratio, outcome = NULL, ...){
     if (!is.null(outcome)) {
-        customWarning("the outcome argument is defunct and will be ignored. See ?estimateEffects.", 'makeFrontier()')
+        customWarning("the 'outcome' argument is defunct and will be ignored. See ?estimateEffects.", 'makeFrontier()')
     }
 
     if (length(QOI) != 1 || !is.character(QOI)) {
@@ -11,35 +11,47 @@ checkArgs <- function(QOI, metric, outcome = NULL, ...){
         customStop("'QOI' must be either 'SATE', 'FSATE', 'SATT', or 'FSATT'.", 'makeFrontier()')
     }
 
-    if (length(metric) != 1 || !is.character(metric)) {
-        customStop("'metric' must be a string.")
-    }
-    metric <- try(match_arg(tolower(metric), c("l1", "l1median", "l2", "l2median", "mahal", "euclid", "custom", "energy")), silent = TRUE)
-    if (inherits(metric, "try-error")){
-        customStop("'metric' must be either 'l1', 'l1median', 'l2', 'l2median', 'mahal', 'euclid', 'custom', or 'energy'.", 'makeFrontier()')
-    }
-
     acceptable_dist <- c("FSATE", "FSATT")
     acceptable_bin <- c("FSATE", "SATT")
     acceptable_energy <- c("SATE", "FSATE", "SATT")
 
     acceptable_combinations <- list(
-        mahal = acceptable_dist,
-        euclid = acceptable_dist,
-        custom = acceptable_dist,
+        dist = acceptable_dist,
         l1 = acceptable_bin,
         l2 = acceptable_bin,
-        l1median = acceptable_bin,
-        l2median = acceptable_bin,
         energy = acceptable_energy
     )
 
     bad_combination <- !QOI %in% acceptable_combinations[[metric]]
 
     if (bad_combination) {
-        msg <- paste0('the ', metric, ' theoretical frontier is only presently calculable for the ',
-                      word_list(acceptable_combinations[[metric]]), '.')
+        msg <- sprintf('%s frontiers are only presently calculable for the %s.',
+                      switch(metric, "dist" = "pair distance-based",
+                             "energy" = "energy distance-based", "bin-based"),
+                             word_list(acceptable_combinations[[metric]]))
         customStop(msg, 'makeFrontier()')
+    }
+
+    if (!is.null(ratio)) {
+      if (metric == "dist") {
+        if (!is.numeric(ratio) || length(ratio) != 1 || is.na(ratio) || ratio <= 0 ||
+            abs(round(ratio) - ratio) > .Machine$double.eps) {
+          customStop("'ratio' must be a single positive integer when used with pair distance-based frontiers.",
+                     "makeFrontier()")
+        }
+      }
+      else {
+        if (!QOI %in% c("FSATE", "SATE")) {
+          customWarning(sprintf("'ratio' is ignored for %s frontiers when QOI = '%s'.",
+                                switch(metric, "dist" = "pair distance-based",
+                                       "energy" = "energy distance-based", "bin-based"),
+                                QOI),
+                        "makeFrontier()", immediate = TRUE)
+        }
+        if (!is.numeric(ratio) || length(ratio) != 1 || is.na(ratio) || ratio <= 0) {
+          customStop("'ratio' must be a single positive number.", "makeFrontier()")
+        }
+      }
     }
 
 }

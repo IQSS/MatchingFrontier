@@ -1,5 +1,5 @@
 modelDependence <- function(base.form = NULL,
-                            dataset,
+                            data,
                             treatment,
                             outcome,
                             covariates,
@@ -14,7 +14,7 @@ modelDependence <- function(base.form = NULL,
 
   if (!is.null(seed)) set.seed(seed)
 
-  if (missing(dataset) || length(dataset) == 0){
+  if (missing(data) || length(data) == 0){
     customStop("a dataset must be supplied.", 'modelDependence()')
   }
 
@@ -57,8 +57,8 @@ modelDependence <- function(base.form = NULL,
   if (inherits(covariates, "formula")) {
     covariates <- all.vars(delete.response(terms(covariates)))
   }
-  if (!all(covariates %in% names(dataset))) {
-    customStop("all covariates must be present in 'dataset'.", 'modelDependence()')
+  if (!all(covariates %in% names(data))) {
+    customStop("all covariates must be present in 'data'.", 'modelDependence()')
   }
 
   method <- match_arg(method)
@@ -69,7 +69,7 @@ modelDependence <- function(base.form = NULL,
     }
 
     if (is.null(specifications)) {
-      specifications <- getSpecifications(base.form, covariates, dataset, model.dependence.ests)
+      specifications <- getSpecifications(base.form, covariates, data, model.dependence.ests)
     }
     else if (!is.list(specifications) ||
              !all(vapply(specifications, function(s) {
@@ -80,7 +80,7 @@ modelDependence <- function(base.form = NULL,
       customStop("'specifications' must be a list of model formulas.", "modelDependence()")
     }
 
-    if (!is.null(weights) && (!is.numeric(weights) || length(weights) != nrow(dataset))) {
+    if (!is.null(weights) && (!is.numeric(weights) || length(weights) != nrow(data))) {
       customStop("'weights' must be a nmeric vector with a value for each unit in the data.", "modelDependence()")
     }
   }
@@ -91,7 +91,7 @@ modelDependence <- function(base.form = NULL,
         customStop('non-0/1 weights cannot be used with the Athey-Imbens procedure.", "modelDependence()')
       }
       else {
-        dataset <- dataset[weights > 0,,drop = FALSE]
+        data <- data[weights > 0,,drop = FALSE]
         weights <- NULL
       }
     }
@@ -99,26 +99,26 @@ modelDependence <- function(base.form = NULL,
     cutpoint.method <- match_arg(cutpoint.method)
 
     for (i in covariates) {
-      nu <- length(unique(dataset[[i]]))
+      nu <- length(unique(data[[i]]))
       if (nu == 1L) covariates <- setdiff(covariates, i)
-      else if (nu == 2L) dataset[[i]] <- factor(dataset[[i]], nmax = 2)
-      else if (is.character(dataset[[i]])) dataset[[i]] <- factor(dataset[[i]])
+      else if (nu == 2L) data[[i]] <- factor(data[[i]], nmax = 2)
+      else if (is.character(data[[i]])) data[[i]] <- factor(data[[i]])
     }
 
     cutpoints <- setNames(lapply(covariates, function(cov) {
-      if (is.factor(dataset[[cov]])) {
+      if (is.factor(data[[cov]])) {
         NA
       }
       else if (!is.null(cutpoints) && cov %in% names(cutpoints)) {
         cutpoints[[cov]]
       }
       else{
-        getCutpoint(dataset, base.form, cov, cutpoint.method)
+        getCutpoint(data, base.form, cov, cutpoint.method)
       }
     }), covariates)
   }
 
-  out <- modelDependenceInternal(dataset, treatment = treatment,
+  out <- modelDependenceInternal(data, treatment = treatment,
                                  outcome = outcome,
                                  covariates = covariates,
                                  weights = weights,
@@ -131,7 +131,7 @@ modelDependence <- function(base.form = NULL,
   return(out)
 }
 
-modelDependenceInternal <- function(dataset,
+modelDependenceInternal <- function(data,
                                     treatment,
                                     outcome,
                                     covariates,
@@ -144,9 +144,9 @@ modelDependenceInternal <- function(dataset,
 
   method <- match_arg(method)
 
-  base.coef <- estOneEffect(base.form, dataset = dataset,
+  base.coef <- estOneEffect(base.form, data = data,
                             treatment = treatment,
-                            # subclass = dataset$.subclass, id = dataset$.id,
+                            # subclass = data$.subclass, id = data$.id,
                             weights = weights, alpha = NULL)["Estimate"]
 
   if (method == "extreme-bounds") {
@@ -154,14 +154,14 @@ modelDependenceInternal <- function(dataset,
     coef.dist <- vapply(specifications, function(s) {
       formula <- as.formula(s)
       # run model
-      est <- estOneEffect(formula, dataset = dataset,
+      est <- estOneEffect(formula, data = data,
                           treatment = treatment, weights = weights,
-                          # subclass = dataset$.subclass, id = dataset$.id,
+                          # subclass = data$.subclass, id = data$.id,
                           alpha = NULL)
       return(est["Estimate"])
     }, numeric(1L))
 
-    out <- quantile(coef.dist, c(.025, .975))
+    out <- quantile(coef.dist, c(.05, .95))
     attr(out, "specifications") <- lapply(specifications, function(s) {
       if (is.call(s)) deparse1(s) else s
     })
@@ -169,7 +169,7 @@ modelDependenceInternal <- function(dataset,
   }
   else if (method == "athey-imbens") {
 
-    N <- nrow(dataset)
+    N <- nrow(data)
 
     theta.Ps <- vapply(covariates, function(cov) {
       # Formula for this iteration; remove cov
@@ -177,12 +177,12 @@ modelDependenceInternal <- function(dataset,
 
       # Split data
       if (anyNA(cutpoints[[cov]])) {
-        split.datasets <- split(dataset, dataset[[cov]])
-        if (!is.null(weights)) split.weights <- split(weights, dataset[[cov]])
+        split.datasets <- split(data, data[[cov]])
+        if (!is.null(weights)) split.weights <- split(weights, data[[cov]])
       }
       else {
-        split.datasets <- split(dataset, dataset[[cov]] < cutpoints[[cov]])
-        if (!is.null(weights)) split.weights <- split(weights, dataset[[cov]] < cutpoints[[cov]])
+        split.datasets <- split(data, data[[cov]] < cutpoints[[cov]])
+        if (!is.null(weights)) split.weights <- split(weights, data[[cov]] < cutpoints[[cov]])
       }
 
       # Get theta_ps
@@ -192,7 +192,7 @@ modelDependenceInternal <- function(dataset,
         if (!is.null(weights)) w <- split.weights[[i]]
         else w <- NULL
 
-        d.est <- estOneEffect(this.form, dataset = d,
+        d.est <- estOneEffect(this.form, data = d,
                               treatment = treatment,
                               weights = w, alpha = NULL)["Estimate"]
 

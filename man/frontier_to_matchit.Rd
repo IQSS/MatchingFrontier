@@ -47,7 +47,7 @@ data("lalonde", package = "MatchIt")
 #Pair distance frontier for FSATT
 f1 <- makeFrontier(treat ~ age + educ + married + re74,
                    data = lalonde, QOI = "FSATT",
-                   metric = "mahal")
+                   metric = "dist", verbose = FALSE)
 plot(f1)
 
 #Convert to matchit object after dropping 120 treated units

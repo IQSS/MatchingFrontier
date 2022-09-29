@@ -1,12 +1,12 @@
-getSpecifications <- function(base.form, covariates, dataset, N){
+getSpecifications <- function(base.form, covariates, data, N){
     #Note: in order for poly_() to work, it must be wrapped in I(),
     #and form.list must be generated in this loop, not lapply().
     form.list <- vector("list", N)
     no.poly.covs <- covariates[vapply(covariates, function(cov) {
-        is.character(dataset[[cov]]) ||
-            is.logical(dataset[[cov]]) ||
-            is.factor(dataset[[cov]]) ||
-            length(unique(dataset[[cov]])) <= 3},
+        is.character(data[[cov]]) ||
+            is.logical(data[[cov]]) ||
+            is.factor(data[[cov]]) ||
+            length(unique(data[[cov]])) <= 3},
         logical(1L))]
 
     for (i in seq_len(N)) {

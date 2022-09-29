@@ -1,7 +1,7 @@
-binsToFrontierFSATE <- function(strataholder, treat.vec, metric = "l1", verbose) {
+binsToFrontierFSATE <- function(strata, treat.vec, metric = "l1", verbose, ratio = NULL) {
 
-  N1 <- sum(treat.vec[unlist(strataholder)] == 1)
-  N0 <- sum(treat.vec[unlist(strataholder)] == 0)
+  N1 <- sum(treat.vec == 1)
+  N0 <- sum(treat.vec == 0)
   N <- length(treat.vec)
 
   drop.order <- vector("list", N0)
@@ -15,64 +15,108 @@ binsToFrontierFSATE <- function(strataholder, treat.vec, metric = "l1", verbose)
   }
 
   if (verbose) {
-    pb <- txtProgressBar(min = 1, max = N, style = 3)
+    pb <- pbapply::startpb(min = 0, max = N)
   }
 
-  diffs <- get.diffs(strataholder, treat.vec, N1, N0)
+  strataholder <- lapply(unique(strata), function(s) which(strata == s))
+
+  treated.counts <- vapply(strataholder, function(x) {
+    sum(treat.vec[x] == 1)
+  }, numeric(1L))
+
+  control.counts <- lengths(strataholder) - treated.counts
+
+  treated.props <- treated.counts/N1
+  control.props <- control.counts/N0
+
+  diffs <- treated.props - control.props
   Ys[1] <- Lstat(diffs)
 
   min.Lstat <- Ys[1]
 
-  if (verbose) setTxtProgressBar(pb, 1)
-
   k <- 1
+
   repeat {
     k <- k + 1
 
-    #Drop unit from group with higher proportion in stratum with
-    #largest |diff|
-    drop.from <- which.max(abs(diffs))
+    L.best.treated.to.drop <- L.best.control.to.drop <- Inf
 
-    if (diffs[drop.from] < 0) drop.group <- 1
-    else drop.group <- 0
+    if (is.null(ratio) || N0 < N1 * ratio) {
+      altered.treated.props <- treated.counts/(N1 - 1)
+
+      altered.treated.diffs <- altered.treated.props - control.props
+
+      best.treated.to.drop <- which.max(altered.treated.diffs)
+
+      altered.treated.diffs[best.treated.to.drop] <- altered.treated.diffs[best.treated.to.drop] - 1/(N1 - 1)
+
+      L.best.treated.to.drop <- Lstat(altered.treated.diffs)
+    }
+
+    if (is.null(ratio) || N0 >= N1 * ratio) {
+      altered.control.props <- control.counts/(N0 - 1)
+
+      altered.control.diffs <- altered.control.props - treated.props
+
+      best.control.to.drop <- which.max(altered.control.diffs)
+
+      altered.control.diffs[best.control.to.drop] <- altered.control.diffs[best.control.to.drop] - 1/(N0 - 1)
+
+      L.best.control.to.drop <- Lstat(altered.control.diffs)
+    }
+
+    if (L.best.treated.to.drop < L.best.control.to.drop) {
+      drop.group <- 1
+      drop.from <- best.treated.to.drop
+    }
+    else {
+      drop.group <- 0
+      drop.from <- best.control.to.drop
+    }
 
     dropped.element.ind <- which(treat.vec[strataholder[[drop.from]]] == drop.group)[1]
 
     drop <- strataholder[[drop.from]][dropped.element.ind]
     strataholder[[drop.from]] <- strataholder[[drop.from]][-dropped.element.ind]
 
-    if (drop.group == 1) N1 <- N1 - 1
-    else N0 <- N0 - 1
+    if (drop.group == 1) {
+      N1 <- N1 - 1
+      treated.counts[drop.from] <- treated.counts[drop.from] - 1
+      treated.props <- treated.counts/N1
+      new.Lstat <- L.best.treated.to.drop
+    }
+    else {
+      N0 <- N0 - 1
+      control.counts[drop.from] <- control.counts[drop.from] - 1
+      control.props <- control.counts/N0
+      new.Lstat <- L.best.control.to.drop
+    }
 
-    if (N1 == 0 || N0 == 0) break
+    if (N1 == 1 || N0 == 1) break
 
-    diffs <- get.diffs(strataholder, treat.vec, N1, N0)
-    new.Lstat <- Lstat(diffs)
-
-    # if (new.Lstat > Ys[k - 1]) break
+    if (verbose) {
+      pbapply::setpb(pb, N - (N0 + N1))
+    }
 
     if (new.Lstat < min.Lstat) min.Lstat <- new.Lstat
-    else if ((N1+N0) < .9*N && new.Lstat - min.Lstat > .2*(Ys[1] - min.Lstat)) break
+    else if ((N1+N0) < .9*N && new.Lstat - min.Lstat > .3*(Ys[1] - min.Lstat)) break
 
     Ys[k] <- new.Lstat
     drop.order[[k]] <- drop
 
-    if (verbose) {
-      setTxtProgressBar(pb, k)
-    }
-
+    if (new.Lstat < 1e-9) break
   }
 
-  empty <- which(lengths(drop.order) == 0)
-  drop.order[empty] <- NULL
-  Ys <- Ys[-empty]
+  keep <- c(1L, which(lengths(drop.order) > 0))
+  drop.order[-keep] <- NULL
+  Ys <- Ys[keep]
 
   Xs <- cumsum(lengths(drop.order))
 
   if (verbose) {
-    setTxtProgressBar(pb, N)
-    close(pb)
+    pbapply::setpb(pb, N)
+    pbapply::closepb(pb)
   }
 
-  return(list(drop.order = drop.order, Xs = Xs, Ys = Ys))
+  return(list(drop.order = drop.order, Xs = Xs, Ys = Ys, Y.origin = Ys[1]))
 }

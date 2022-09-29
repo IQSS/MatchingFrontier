@@ -1,12 +1,9 @@
 import("ggplot2")
-import("MatchIt")
 import("stats")
 
 importFrom("grDevices", "nclass.FD", "nclass.Sturges", "nclass.scott",
            "rgb")
-importFrom("graphics", "lines", "mtext", "polygon")
 importFrom("utils", "combn", "data", "packageName",
-           "setTxtProgressBar", "txtProgressBar",
            "packageDate", "packageVersion")
 
 export("makeFrontier", "generateDataset", "frontier_to_matchit",
@@ -14,6 +11,7 @@ export("makeFrontier", "generateDataset", "frontier_to_matchit",
 
 S3method("makeFrontier", "formula")
 S3method("makeFrontier", "data.frame")
+S3method("makeFrontier", "matchit")
 
 S3method("print", "matchFrontier")
 S3method("plot", "matchFrontier")

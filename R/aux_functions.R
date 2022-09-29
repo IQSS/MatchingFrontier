@@ -1,28 +1,5 @@
 #Auxiliary functions
 
-metric2info <- function(metric) {
-  metric <- tolower(metric)
-  if (startsWith(metric, "l1")) "L1 statistic"
-  else if (startsWith(metric, "l2")) "L2 statistic"
-  else if (metric == "mahal") "average pairwise Mahalanobis distance"
-  else if (metric == "euclid") "average pairwise Euclidean distance"
-  else if (metric == "custom") "average pairwise distance"
-  else if (metric == "energy") "energy distance"
-}
-
-metricType <- function(metric) {
-  switch(tolower(metric),
-         "mahal" =,
-         "euclid" =,
-         "custom" = "dist",
-         "l1" =,
-         "l2" =,
-         "l1median" =,
-         "l2median" = "bin",
-         "energy" = "energy",
-         stop("Unrecognized metric."))
-}
-
 #Function to turn a vector into a string with "," and "and" or "or" for clean messages. 'and.or'
 #controls whether words are separated by "and" or "or"; 'is.are' controls whether the list is
 #followed by "is" or "are" (to avoid manually figuring out if plural); quotes controls whether
@@ -80,11 +57,11 @@ add_quotes <- function(x, quotes = 2) {
 
 #More informative and cleaner version of base::match.arg. From MatchIt.
 match_arg <- function(arg, choices, several.ok = FALSE) {
-  #Replaces match_arg() but gives cleaner error message and processing
+  #Replaces match.arg() but gives cleaner error message and processing
   #of arg.
   if (missing(arg))
-    stop("No argument was supplied to match_arg.", call. = FALSE)
-  arg.name <- paste(deparse(substitute(arg), width.cutoff = 500L), collapse = " ")
+    stop("No argument was supplied to `match_arg()`.", call. = FALSE)
+  arg.name <- deparse1(substitute(arg), width.cutoff = 500L)
 
   if (missing(choices)) {
     formal.args <- formals(sys.function(sysP <- sys.parent()))
@@ -95,24 +72,25 @@ match_arg <- function(arg, choices, several.ok = FALSE) {
   if (is.null(arg))
     return(choices[1L])
   else if (!is.character(arg))
-    stop(paste0("The argument to '", arg.name, "' must be NULL or a character vector"), call. = FALSE)
+    stop(sprintf("The argument to '%s' must be NULL or a character vector", arg.name), call. = FALSE)
   if (!several.ok) {
     if (identical(arg, choices))
       return(arg[1L])
     if (length(arg) > 1L)
-      stop(paste0("The argument to '", arg.name, "' must be of length 1"), call. = FALSE)
+      stop(sprintf("The argument to '%s' must be of length 1", arg.name), call. = FALSE)
   }
   else if (length(arg) == 0)
-    stop(paste0("The argument to '", arg.name, "' must be of length >= 1"), call. = FALSE)
+    stop(sprintf("The argument to '%s' must be of length >= 1", arg.name), call. = FALSE)
 
   i <- pmatch(arg, choices, nomatch = 0L, duplicates.ok = TRUE)
   if (all(i == 0L))
-    stop(paste0("The argument to '", arg.name, "' should be ", if (length(choices) > 1) {if (several.ok) "at least one of " else "one of "} else "",
-                word_list(choices, and.or = "or", quotes = 2), "."),
+    stop(sprintf("The argument to '%s' should be %s %s.",
+                 arg.name, ngettext(length(choices), "", if (several.ok) "at least one of " else "one of "),
+                 word_list(choices, and.or = "or", quotes = 2)),
          call. = FALSE)
   i <- i[i > 0L]
   if (!several.ok && length(i) > 1)
-    stop("There is more than one match in 'match_arg'")
+    stop("There is more than one match in `match_arg`")
   choices[i]
 }
 
@@ -248,6 +226,14 @@ w_m <- function(x, w = NULL) {
   else sum(x*w)/sum(w)
 }
 
+#Column sums and row sums, faster than colSums() and rowSums()
+col_sums <- function(x) {
+  .colSums(x, nrow(x), ncol(x))
+}
+row_sums <- function(x) {
+  .rowSums(x, nrow(x), ncol(x))
+}
+
 #Weighted KS statistic, from cobalt's col_w_ks()
 w_ks <- function(x, treat, w = NULL) {
   if (is.null(w)) w <- rep(1, length(treat))
@@ -309,7 +295,7 @@ safe_ci <- function(fit, treatment, vcov. = sandwich::vcovHC, type = "HC3", alph
   while (type != "const") {
 
     if (is.finite(v[treatment, treatment])) {
-      return(lmtest::coefci(fit, treatment, vcov. = v, level = 1 - alpha))
+      return(get.ci(fit, treatment, alpha, v))
     }
 
     type <- switch(type,
@@ -324,8 +310,51 @@ safe_ci <- function(fit, treatment, vcov. = sandwich::vcovHC, type = "HC3", alph
     v <- vcov.(fit, type = type, ...)
   }
 
-  lmtest::coefci(fit, treatment, vcov. = v, level = 1 - alpha)
+  get.ci(fit, treatment, alpha, v)
 }
+
+#Port of lmtest::coef.ci() but simplified
+get.ci <- function(fit, par, alpha = 0.05, vcov) {
+  est <- coef(fit)
+  se <- sqrt(diag(vcov))
+
+  if (!is.null(names(est)) && !is.null(names(se))) {
+    anames <- names(est)[names(est) %in% names(se)]
+    est <- est[anames]
+    se <- se[anames]
+  }
+
+  a <- c(alpha/2, 1 - alpha/2)
+
+  df <- try(df.residual(fit), silent = TRUE)
+  if (inherits(df, "try-error")) df <- NULL
+
+  if (is.null(df)) df <- 0
+  fac <- {
+    if (any(is.finite(df)) && all(df > 0)) qt(a, df = df)
+    else qnorm(a)
+  }
+  ci <- cbind(est + fac[1] * se, est + fac[2] * se)
+  colnames(ci) <- paste(format(100 * a, trim = TRUE, scientific = FALSE,
+                               digits = 3L), "%")
+
+  ci <- ci[names(est) %in% par, , drop = FALSE]
+
+  return(ci)
+}
+
+#Check if matrix is symmatric, using stochastic sampling if matrix is too big in
+#order to avoid long run time of isSymmetric
+check_symmetric <- function(mat, use.random.at = 2000, n = 50000) {
+  r <- nrow(mat)
+  if (r < use.random.at) return(isSymmetric.matrix(unname(mat)))
+
+  x <- sample(seq_len(r), n, replace = TRUE)
+  y <- sample(seq_len(r), n, replace = TRUE)
+
+  return(all(abs(mat[cbind(x, y)] - mat[cbind(y, x)]) < sqrt(.Machine$double.eps)))
+}
+
 
 #Add ...names() for old versions of R; not in backports (yet)
 if (getRversion() < "4.1.0" && !exists("...names", envir = asNamespace("backports"), inherits = FALSE)) {

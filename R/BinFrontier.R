@@ -1,24 +1,27 @@
-BinFrontier <- function(treatment, dataset, formula, metric, QOI, breaks, match.on, verbose) {
+BinFrontier <- function(treatment, data, formula, metric, QOI, match.on, ratio, verbose) {
 
-  treat <- dataset[[treatment]]
+  treat <- data[[treatment]]
+
+  if (is.null(attr(metric, "breaks"))) breaks <- "sturges"
+  else breaks <- attr(metric, "breaks")
 
   if (verbose) cat("Computing bins...\n")
 
-  if (endsWith(metric, "median")) {
-    bins.list <- getBinsAtMedian(dataset, match.on, treat, metric)
+  if (is.character(breaks) && identical(tolower(breaks), "median")) {
+    bins.list <- getBinsAtMedian(data, match.on, treat, metric, verbose)
   }
   else {
-    bins.list <- getBins(dataset, match.on, breaks)
+    bins.list <- getBins(data, match.on, breaks)
   }
-  strataholder <- assignToBins(dataset, match.on, bins.list)
+  strata <- assignToBins(data, match.on, bins.list)
 
   if (verbose) cat("Calculating frontier...\n")
 
   if (QOI == "FSATE") {
-    frontier <- binsToFrontierFSATE(strataholder, treat, metric, verbose)
+    frontier <- binsToFrontierFSATE(strata, treat, metric, verbose, ratio)
   }
   else if (QOI == "SATT") {
-    frontier <- binsToFrontierSATT(strataholder, treat, metric, verbose)
+    frontier <- binsToFrontierSATT(strata, treat, metric, verbose, ratio)
   }
 
   if (verbose) cat("Done!\n")

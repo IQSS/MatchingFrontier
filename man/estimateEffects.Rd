@@ -13,6 +13,7 @@ estimateEffects(frontier.object,
                 outcome,
                 base.form = NULL,
                 n.estimated = 250,
+                N, Ndrop,
                 method = c("none", "extreme-bounds",
                            "athey-imbens"),
                 model.dependence.ests = 100,
@@ -23,6 +24,7 @@ estimateEffects(frontier.object,
                 seed = NULL,
                 alpha = 0.05,
                 verbose = TRUE,
+                cl = NULL,
                 ...)
 
 \method{print}{frontierEstimates}(x, ...)
@@ -41,8 +43,11 @@ a model formula with the outcome on the left hand side and the treatment (and op
   \item{n.estimated}{
 the number of points along the frontier to estimate. Estimating effects at every point on the frontier can be time-consuming for large frontiers, especially when model dependence bounds are also computed, so using values less than the number of points can save time at the expense of providing less detail in the frontier estimates plot. The default is 250 or the number of points, whichever is smaller.
 }
+  \item{N, Ndrop}{
+the number of units remaining or dropped, respectively, in the sample at the desired points on the frontier for which effects are to be estimated. Should be a vector of 2 values containing the start and end of the range of the desired points. Exactly one of \code{N} or \code{Ndrop} can be specified. If both are omitted, will estimate effects along the full range of the frontier.
+}
   \item{method}{
-the method of computing model dependence bounds. Can be one of \code{"extreme-bounds"} or \code{"athey-imbens"} for the extreme bounds or Athey-Imbens procedures, respectively, or \code{"none"} to not compute model dependence bounds. Abbreviations allowed. Default is no model dependence bounds. See \fun{modelDependence}.
+the method of computing model dependence bounds. Can be one of \code{"extreme-bounds"} or \code{"athey-imbens"} for the extreme bounds or Athey-Imbens procedures, respectively, or \code{"none"} to not compute model dependence bounds. Abbreviations allowed. Default is no model dependence bounds. See \fun{modelDependence}. When using \code{metric = 'dist'} in \code{makeFrontier()}, only \code{"extreme-bounds"} is allowed.
 }
   \item{model.dependence.ests, specifications, cutpoints, cutpoint.method, seed}{
 arguments passed to \fun{modelDependence} when \code{method} is not \code{"none"}.
@@ -52,6 +57,9 @@ the alpha value used to select the critical test statistic used in computing con
 }
   \item{verbose}{
 \code{logical}; whether to print additional information about the process of estimating effects and sensitivity bounds (if requested). A progress bar will be displayed if \code{TRUE}.
+}
+  \item{cl}{
+a cluster object created by \code{parallel::makeCluster()}, or an integer to indicate number of child-processes (integer values are ignored on Windows) for parallel evaluations. See \pkgfun{pbapply}{pblapply} for details.
 }
   \item{x}{
 a \code{frontierEstimates} object; the output of a call to \code{estimateEffects()}.
@@ -63,7 +71,7 @@ Ignored for \code{print()}.
 }
 }
 \details{
-\code{estimateEffects()} works by creating a dataset at each point along the frontier using the units that remain and fitting the supplied outcome model to those datasets, returning the point estimate, confidence interval bounds, and, if requested, model dependence bounds. The outcome model fit is that supplied to \code{base.form}, and the coefficient on the treatment is used at the treatment effect estimate. Currently, only linear models can be used and the treatment effect corresponds to the difference in means.
+\code{estimateEffects()} works by creating a dataset at each point along the frontier using the units that remain and fitting the supplied outcome model to those datasets, returning the point estimate, confidence interval bounds, and, if requested, model dependence bounds. The outcome model fit is that supplied to \code{base.form}, and the coefficient on the treatment is used at the treatment effect estimate. Currently, only linear models can be used and the treatment effect corresponds to the difference in means. Models will only be fit for datasets with 15 or more units.
 
 Confidence intervals are computed using HC3 robust standard errors as implemented in \pkg{sandwich}. Note that robust standard errors may not be accurate for matching with replacement; only the Abadie-Imbens (2006) standard errors implemented in the \pkg{Matching} package are accurate. Including covariates in the outcome model improves the performance of the standard errors, and so is recommended here and in general (Hill & Reiter, 2006).
 
@@ -71,7 +79,7 @@ The model dependence bounds are computed using the same machinery as is used wit
 }
 \value{
 A \code{frontierEstimates} object with the following components:
-\item{Xs}{a vector containing the cumulative number of units dropped at each point on the frontier for which effects were estimated. The first value will be 0.}
+\item{Xs}{a vector containing the cumulative number of units dropped at each point on the frontier for which effects were estimated..}
 \item{coefs}{a vector containing the treatment effect estimates at each point on the frontier for which effects were estimated.}
 \item{CIs}{a list containing the upper and lower confidence interval limits at each point on the frontier for which effects were estimated.}
 \item{mod.dependence}{a list containing the upper and lower model dependence bounds at each point on the frontier for which effects were estimated.}
@@ -105,7 +113,8 @@ data("lalonde", package = "MatchIt")
 f1 <- makeFrontier(treat ~ age + educ + married + re74,
                    data = lalonde,
                    QOI = "FSATT",
-                   metric = "mahal")
+                   metric = "dist",
+                   verbose = FALSE)
 
 f1
 
@@ -120,4 +129,14 @@ plot(e1, band = "model-dependence")
 plot(e1, band = "confidence")
 
 summary(e1, Ndrop = c(10, 85))
+
+# Only estimate effects for a subset of the forntier
+# (points with remaining sample sizes between 50 and
+# 100)
+e2 <- estimateEffects(f1,
+                      base.form = re78 ~ treat + age +
+                                    educ + married + re74,
+                      N = c(50, 100))
+e2
+plot(e2)
 }

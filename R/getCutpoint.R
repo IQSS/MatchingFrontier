@@ -1,10 +1,10 @@
-getCutpoint <- function(dataset, base.form, cov, cutpoint.method){
+getCutpoint <- function(data, base.form, cov, cutpoint.method){
 
     if (cutpoint.method == "median") {
-        cutpoint <- median(dataset[[cov]])
+        cutpoint <- median(data[[cov]])
     }
     else if (cutpoint.method == "mean") {
-        cutpoint <- mean(dataset[[cov]])
+        cutpoint <- mean(data[[cov]])
     }
     else if (cutpoint.method == "segmented") {
 
@@ -14,11 +14,11 @@ getCutpoint <- function(dataset, base.form, cov, cutpoint.method){
 
         mod.form <- update(base.form, as.formula(paste(". ~", cov)))
 
-        if (length(unique(model.response(model.frame(base.form, dataset)))) == 2) {
-            base.mod <- glm(mod.form, data = dataset, family = 'binomial')
+        if (length(unique(model.response(model.frame(base.form, data)))) == 2) {
+            base.mod <- glm(mod.form, data = data, family = 'quasibinomial')
         }
         else{
-            base.mod <- lm(mod.form, data = dataset)
+            base.mod <- lm(mod.form, data = data)
         }
 
         seg.reg <- segmented::segmented(base.mod, control = segmented::seg.control(it.max = 10000))

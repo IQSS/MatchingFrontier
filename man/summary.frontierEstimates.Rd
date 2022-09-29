@@ -19,10 +19,10 @@ Summarize a \code{frontierEstimates} object
 a \code{frontierEstimates} object; the output of a call to \fun{estimateEffects}.
 }
   \item{N}{
-the number of units remaining in the sample at the desired point(s) on the frontier. Exactly one of \code{N} or \code{Ndrop} must be specified.
+the number of units remaining in the sample at the desired point(s) on the frontier. Exactly one of \code{N} or \code{Ndrop} can be specified. If both are omitted, will display effect estimates at the first, last, and middle point along the frontier.
 }
   \item{Ndrop}{
-the number of units dropped in the sample at the desired point(s) on the frontier. Exactly one of \code{N} or \code{Ndrop} must be specified.
+the number of units dropped in the sample at the desired point(s) on the frontier. Exactly one of \code{N} or \code{Ndrop} can be specified. If both are omitted, will display effect estimates at the first, last, and middle point along the frontier.
 }
   \item{x}{
 a \code{summary.frontierEstimates} object; the output of a call to \code{summary.frontierEstimates()}.

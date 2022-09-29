@@ -2,14 +2,17 @@ makeFrontier <- function(x, ...) {
   UseMethod("makeFrontier")
 }
 makeFrontier.data.frame <- function(x, treatment, match.on, QOI = 'FSATT',
-                                    metric = 'mahal', breaks = NULL,
-                                    distance.mat = NULL, verbose = TRUE, ...){
+                                    metric = 'dist', breaks = NULL,
+                                    distance.mat = NULL, ratio = NULL,
+                                    verbose = TRUE, ...){
 
   call <- match.call()
   call[[1]] <- quote(makeFrontier)
 
   # Check the frontier arguments
-  checkArgs(QOI, metric, ...)
+  processed_metric <- processMetric(metric, breaks, distance.mat)
+
+  checkArgs(QOI, metric = processed_metric, ratio = ratio, ...)
 
   if (!missing(match.on) && inherits(match.on, "formula")) {
     match.on <- all.vars(delete.response(terms(match.on)))
@@ -23,18 +26,21 @@ makeFrontier.data.frame <- function(x, treatment, match.on, QOI = 'FSATT',
   formula <- reformulate(match.on, treatment)
 
   makeFrontier_internal(x, treatment, match.on, formula, QOI,
-                        metric, breaks, distance.mat, call, verbose)
+                        processed_metric, call, ratio, verbose)
 }
 
 makeFrontier.formula <- function(formula, data, QOI = 'FSATT',
-                                 metric = 'mahal', breaks = NULL,
-                                 distance.mat = NULL, verbose = TRUE, ...){
+                                 metric = 'dist', breaks = NULL,
+                                 distance.mat = NULL, ratio = NULL,
+                                 verbose = TRUE, ...){
 
   call <- match.call()
   call[[1]] <- quote(makeFrontier)
 
   # Check the frontier arguments
-  checkArgs(QOI, metric, ...)
+  processed_metric <- processMetric(metric, breaks, distance.mat)
+
+  checkArgs(QOI, metric = processed_metric, ratio = ratio, ...)
 
   treatment <- all.vars(formula)[attr(terms(formula), "response")]
 
@@ -49,37 +55,34 @@ makeFrontier.formula <- function(formula, data, QOI = 'FSATT',
   data[[treatment]] <- binarize(data[[treatment]])
 
   makeFrontier_internal(data, treatment, match.on, formula, QOI,
-                        metric, breaks, distance.mat, call, verbose)
+                        processed_metric, call, ratio, verbose)
 }
 
-makeFrontier_internal <- function(dataset, treatment, match.on, formula, QOI = 'FSATT',
-                                  metric = 'mahal', breaks = NULL,
-                                  distance.mat = NULL, call = NULL, verbose = FALSE) {
+makeFrontier_internal <- function(data, treatment, match.on, formula, QOI = 'FSATT',
+                                  metric, call = NULL, ratio = NULL, verbose = FALSE) {
 
-  metric <- tolower(metric)
-
-  frontier <- switch(metricType(metric),
+  frontier <- switch(attr(metric, "type"),
                      "dist" = DistFrontier(treatment = treatment,
-                                           dataset = dataset,
+                                           data = data,
                                            formula = formula,
                                            metric = metric,
                                            QOI = QOI,
-                                           distance.mat = distance.mat,
+                                           ratio = ratio,
                                            verbose = verbose),
                      "bin" = BinFrontier(treatment = treatment,
-                                         dataset = dataset,
+                                         data = data,
                                          formula = formula,
                                          metric = metric,
                                          QOI = QOI,
-                                         breaks = breaks,
                                          match.on = match.on,
+                                         ratio = ratio,
                                          verbose = verbose),
                      "energy" = EnergyFrontier(treatment = treatment,
-                                               dataset = dataset,
+                                               data = data,
                                                formula = formula,
                                                metric = metric,
                                                QOI = QOI,
-                                               distance.mat = distance.mat,
+                                               ratio = ratio,
                                                verbose = verbose)
   )
 
@@ -90,19 +93,19 @@ makeFrontier_internal <- function(dataset, treatment, match.on, formula, QOI = '
     frontier = frontier,
     treatment = treatment,
     QOI = QOI,
-    metric = metric,
-    dataset = dataset,
+    metric = as.character(metric),
+    data = data,
     match.on = match.on,
     matched.to = matched.to,
     call = call,
     n = switch(QOI,
-               "SATE" = nrow(dataset),
-               "FSATE" = nrow(dataset),
-               "SATT" = sum(dataset[[treatment]] == 0),
-               "FSATT" = sum(dataset[[treatment]] == 1))
+               "SATE" = nrow(data),
+               "FSATE" = nrow(data),
+               "SATT" = sum(data[[treatment]] == 0),
+               "FSATT" = sum(data[[treatment]] == 1))
   )
 
-  class(out) <- c("matchFrontier", paste0(metricType(metric), "Frontier"))
+  class(out) <- c(paste0(attr(metric, "type"), "Frontier"), "matchFrontier")
 
   return(out)
 }

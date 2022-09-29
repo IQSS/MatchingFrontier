@@ -1,5 +1,7 @@
 summary.matchFrontier <- function(object, N, Ndrop, ...) {
 
+  use.caliper <- inherits(object, "MatchItFrontier") && identical(attr(object$distance, "type"), "ps")
+
   if (missing(N) && missing(Ndrop)) {
     N <- NULL
   }
@@ -20,6 +22,11 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
     }
   }
 
+  if (use.caliper) {
+    matched <- which(!is.na(object$matched.to[,1]))
+    distances <- c(vapply(object$frontier$drop.order[-1], function(d) object$distance[match(d[1], matched)], numeric(1L)), min(object$distance))
+  }
+
   if (is.null(N)) {
     startStat <- object$frontier$Ys[1]
     endStat <- object$frontier$Ys[length(object$frontier$Ys)]
@@ -27,8 +34,14 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
     bestind <- which.min(object$frontier$Ys)
     bestStat <- object$frontier$Ys[bestind]
 
-    treated.ind <- which(object$dataset[[object$treatment]] == 1)
-    control.ind <- which(object$dataset[[object$treatment]] == 0)
+    if (use.caliper) {
+      startCaliper <- NA_real_
+      endCaliper <- distances[length(object$frontier$Ys)]
+      bestCaliper <- distances[bestind]
+    }
+
+    treated.ind <- which(object$data[[object$treatment]] == 1)
+    control.ind <- which(object$data[[object$treatment]] == 0)
 
     if (object$QOI %in% c("SATE", "FSATE")) {
       startNtreated <- length(treated.ind)
@@ -79,21 +92,31 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
       Stat = c(start = startStat, end = endStat, best = bestStat),
       bestind = bestind,
       QOI = object$QOI,
-      metric = object$metric)
+      metric = object$metric,
+      caliper = if (use.caliper) c(start = startCaliper, end = endCaliper, best = bestCaliper))
   }
   else {
     ord <- order(N, decreasing = TRUE)
     N <- N[ord]
+
+    Ns <- object$n - object$frontier$Xs
+
+    for (i in seq_along(N)) {
+      N[i] <- Ns[which.min(Ns[Ns >= N[i]])]
+    }
+    N <- unique(N)
 
     selectedNtreated <- numeric(length(N))
     selectedNcontrol <- numeric(length(N))
     selectedN <- numeric(length(N))
     selectedStat <- numeric(length(N))
 
-    Ns <- object$n - object$frontier$Xs
+    if (use.caliper) {
+      selectedCaliper <- numeric(length(N))
+    }
 
-    treated.ind <- which(object$dataset[[object$treatment]] == 1)
-    control.ind <- which(object$dataset[[object$treatment]] == 0)
+    treated.ind <- which(object$data[[object$treatment]] == 1)
+    control.ind <- which(object$data[[object$treatment]] == 0)
 
     if (object$QOI %in% c("SATE", "FSATE", "SATT")) {
       startNtreated <- length(treated.ind)
@@ -102,10 +125,15 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
     }
 
     for (i in seq_along(N)) {
-      ind <- which.min(Ns[Ns >= N[i]])
-      N[i] <- Ns[ind]
-
+      ind <- which(Ns == N[i])
       selectedStat[i] <- object$frontier$Ys[ind]
+
+      if (use.caliper) {
+        selectedCaliper[i] <- {
+          if (ind <= 1) NA_real_
+          else distances[ind]
+        }
+      }
 
       if (object$QOI %in% c("SATE", "FSATE")) {
         selectedNtreated[i] <- sum(!treated.ind %in% unlist(object$frontier$drop.order[seq_len(ind)]))
@@ -127,6 +155,10 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
     names(selectedNtreated) <- if (missing(Ndrop)) paste("at N =", N) else paste("at Ndrop =", object$n - N)
     names(selectedNcontrol) <- names(selectedN) <- names(selectedStat) <- names(selectedNtreated)
 
+    if (use.caliper) {
+      names(selectedCaliper) <- names(selectedNtreated)
+    }
+
     out <- list(
       Ntreated = selectedNtreated,
       Ncontrol = selectedNcontrol,
@@ -134,29 +166,36 @@ summary.matchFrontier <- function(object, N, Ndrop, ...) {
       Stat = selectedStat,
       bestind = NULL,
       QOI = object$QOI,
-      metric = object$metric)
+      metric = object$metric,
+      caliper = if (use.caliper) selectedCaliper)
   }
 
   class(out) <- "summary.matchFrontier"
   return(out)
 }
 
-print.summary.matchFrontier <- function(x, digits = 3, ...) {
+print.summary.matchFrontier <- function(x, digits = 4, ...) {
   cat("Summary of matchFrontier object:\n\n")
 
   s <- matrix("", nrow = length(x[["N"]]), ncol = 4)
 
-
   s[!is.na(x[["Ntreated"]]), 1] <- as.character(as.integer(x[["Ntreated"]][!is.na(x[["Ntreated"]])]))
   s[!is.na(x[["Ncontrol"]]), 2] <- as.character(as.integer(x[["Ncontrol"]][!is.na(x[["Ncontrol"]])]))
   s[!is.na(x[["N"]]), 3] <- as.character(as.integer(x[["N"]][!is.na(x[["N"]])]))
-  s[,4] <- format(x[["Stat"]], digits = digits, scientific = FALSE)
-
-  s <- rbind(s, "")
-
-  s[nrow(s), switch(x$QOI, "SATE" = 3, "FSATE" = 3, "SATT" = 2, "FSATT" = 1)] <- "^"
+  s[,4] <- format(round(x[["Stat"]], digits), scientific = FALSE)
 
   colnames(s) <- c("N treated", "N control", "N total", "Statistic")
+
+  if (!is.null(x[["caliper"]])) {
+    cal <- rep(".", nrow(s))
+    cal[!is.na(x[["caliper"]])] <- format(round(x[["caliper"]][!is.na(x[["caliper"]])], digits),
+                                          scientific = FALSE)
+    s <- cbind(s, Caliper = cal)
+  }
+
+  s <- rbind(s, "")
+  s[nrow(s), switch(x$QOI, "SATE" = 3, "FSATE" = 3, "SATT" = 2, "FSATT" = 1)] <- "^"
+
   rownames(s) <- c(firstup(names(x[["N"]])), "")
 
   print.data.frame(as.data.frame(s))

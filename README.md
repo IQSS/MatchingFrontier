@@ -5,7 +5,7 @@
 
 <!-- <img src="man/figures/logo.png" align="right" width="150"/> -->
 
-## [![CRAN\_Status\_Badge](https://img.shields.io/cran/v/MatchingFrontier?color=952100)](https://cran.r-project.org/package=MatchingFrontier) [![CRAN\_Downloads\_Badge](https://cranlogs.r-pkg.org/badges/MatchingFrontier?color=952100)](https://cran.r-project.org/package=MatchingFrontier)
+## [![CRAN_Status_Badge](https://img.shields.io/cran/v/MatchingFrontier?color=952100)](https://cran.r-project.org/package=MatchingFrontier) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/MatchingFrontier?color=952100)](https://cran.r-project.org/package=MatchingFrontier)
 
 ### Overview
 
@@ -33,23 +33,18 @@ mahal.frontier <- makeFrontier(treat ~ age + educ + race + married +
                                  nodegree + re74 + re75,
                                data = lalonde, 
                                QOI = "FSATT", 
-                               metric = "mahal")
-```
+                               metric = "dist",
+                               verbose = FALSE)
 
-    #> Computing distance matrix...
-    #> Calculating frontier...
-    #> Done!
-
-``` r
 mahal.frontier
 ```
 
     #> A matchFrontier object
     #> - quantity of interest: FSATT
-    #> - imbalance metric: average pairwise Mahalanobis distance
+    #> - imbalance metric: average pairwise distance
     #> - treatment: treat
     #> - covariates: age, educ, race, married, nodegree, re74, re75
-    #> - number of points: 137
+    #> - number of points: 154
 
 Plotting the frontier provides a clear picture of the relationship
 between the number of units pruned in the matching and the remaining
@@ -73,7 +68,7 @@ mahal.estimates
     #> A frontierEstimates object
     #> - quantity of interest: FSATT
     #> - model sensitivity method: none
-    #> - number of estimates: 137
+    #> - number of estimates: 149
     #> - treatment: treat
     #> - covariates: age, educ, race, married, nodegree, re74, re75
     #> - outcome model: re78 ~ treat
